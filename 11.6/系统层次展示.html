@@ -1,0 +1,2477 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>面向高阶智能驾驶的线控底盘系统 · 系统层次与需求</title>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --surface: #ffffff;
+      --paper: #f8fafb;
+      --ink: #1c2733;
+      --muted: #5d6b7a;
+      --line: #dfe4e8;
+      --navy: #263b52;
+      --accent: #8a2f3a;
+      --indigo: #4f4f8f;
+      --teal: #1f7a7a;
+      --sky: #2f6f9f;
+      --coral: #a64a3b;
+      --amber: #9a6b1f;
+      --green: #39764d;
+      --shadow: 0 14px 34px rgba(28, 43, 60, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 84px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      line-height: 1.55;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 112px 28px 72px;
+    }
+
+    .topnav {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      padding: 0 max(28px, 3vw);
+      background: rgba(245, 247, 248, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .topnav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .topnav-brand::before {
+      content: "";
+      width: 24px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .topnav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .topnav-links a {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 160ms ease;
+    }
+
+    .topnav-links a:hover,
+    .topnav-links a:focus-visible {
+      color: var(--accent);
+      outline: none;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 8px 0 30px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 11px;
+      color: var(--coral);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 22px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: clamp(31px, 4.2vw, 48px);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .masthead p {
+      margin: 14px 0 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .meta {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      color: var(--navy);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .cover-actions {
+      display: flex;
+      flex: 0 0 auto;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+    }
+
+    .doc-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .doc-links a {
+      padding: 8px 11px;
+      color: var(--navy);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .doc-links a:hover,
+    .doc-links a:focus-visible {
+      color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 5px 14px rgba(28, 43, 60, 0.08);
+      outline: none;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stat strong {
+      color: var(--navy);
+    }
+
+    .research-points {
+      display: grid;
+      gap: 12px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .research-point {
+      position: relative;
+      padding: 14px 16px 14px 44px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--node-color);
+      border-radius: 6px;
+    }
+
+    .research-point::before {
+      content: attr(data-index);
+      position: absolute;
+      left: 14px;
+      top: 13px;
+      color: var(--node-color);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .research-point h3 {
+      margin: 0 0 6px;
+      color: var(--navy);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .research-point p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .verification-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .verification-table th,
+    .verification-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .verification-table th {
+      color: var(--navy);
+      background: var(--paper);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-weight: 800;
+    }
+
+    .verification-table td {
+      color: var(--muted);
+    }
+
+    .verification-table strong {
+      color: var(--navy);
+    }
+
+    .intro {
+      margin: 0;
+      padding: 0 0 18px;
+      color: var(--navy);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .pipeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(118px, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .pipeline::before {
+      content: "";
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 33px;
+      height: 2px;
+      background: var(--line);
+      z-index: 0;
+    }
+
+    .node {
+      position: relative;
+      z-index: 1;
+      min-height: 128px;
+      padding: 16px 12px 15px;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--node-color);
+      border-radius: 8px;
+      box-shadow: 0 5px 18px rgba(30, 45, 65, 0.06);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .node:hover,
+    .node:focus-visible,
+    .node.active {
+      transform: translateY(-4px);
+      border-color: var(--node-color);
+      box-shadow: var(--shadow);
+      outline: none;
+    }
+
+    .node.active {
+      background: color-mix(in srgb, var(--node-color) 8%, white);
+    }
+
+    .node-index {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 10px;
+      color: var(--node-color);
+      background: color-mix(in srgb, var(--node-color) 12%, white);
+      border: 1px solid color-mix(in srgb, var(--node-color) 30%, white);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .node h2 {
+      margin: 0 0 5px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .system-map {
+      margin: 0 0 30px;
+    }
+
+    .system-map svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .map-grid {
+      opacity: 0.46;
+    }
+
+    .map-platform {
+      fill: rgba(255, 255, 255, 0.72);
+      stroke: var(--navy);
+      stroke-width: 2;
+    }
+
+    .map-node {
+      cursor: default;
+      transition: filter 180ms ease;
+    }
+
+    .map-node:hover {
+      filter: brightness(0.96);
+    }
+
+    .map-link {
+      fill: none;
+      stroke-width: 2;
+      stroke-dasharray: 7 9;
+      animation: map-flow 1.4s linear infinite;
+    }
+
+    .map-pulse {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: map-pulse 2.6s ease-out infinite;
+    }
+
+    .map-label {
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .map-sub-label {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      opacity: 0.76;
+    }
+
+    @keyframes map-flow {
+      to {
+        stroke-dashoffset: -32;
+      }
+    }
+
+    @keyframes map-pulse {
+      0% {
+        opacity: 0.55;
+        transform: scale(0.58);
+      }
+      70%,
+      100% {
+        opacity: 0;
+        transform: scale(1.28);
+      }
+    }
+
+    .chain {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 4px;
+      margin: 0 0 30px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .chain li {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chain .current {
+      color: var(--coral);
+    }
+
+    .chain .arrow {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .level-list {
+      position: sticky;
+      top: 20px;
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .level-button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 13px 14px;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left: 4px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .level-button:hover,
+    .level-button:focus-visible {
+      border-color: var(--node-color);
+      outline: none;
+    }
+
+    .level-button.active {
+      background: color-mix(in srgb, var(--node-color) 8%, white);
+      border-color: var(--node-color);
+      border-left-color: var(--node-color);
+      box-shadow: 0 6px 16px rgba(30, 45, 65, 0.08);
+    }
+
+    .level-dot {
+      flex: 0 0 auto;
+      width: 10px;
+      height: 10px;
+      background: var(--node-color);
+      border-radius: 50%;
+    }
+
+    .level-copy {
+      min-width: 0;
+    }
+
+    .level-copy strong {
+      display: block;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .level-copy small {
+      display: block;
+      overflow: hidden;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .detail {
+      min-width: 0;
+      min-height: 560px;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 4px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .detail-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .detail-mark {
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--node-color);
+      border-radius: 8px;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .detail-title h2 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 32px;
+      line-height: 1.2;
+    }
+
+    .detail-title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .position-tag {
+      flex: 0 0 auto;
+      padding: 7px 11px;
+      color: var(--node-color);
+      background: color-mix(in srgb, var(--node-color) 10%, white);
+      border: 1px solid color-mix(in srgb, var(--node-color) 35%, white);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .summary {
+      margin: 20px 0 0;
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .summary strong {
+      color: var(--node-color);
+    }
+
+    .overview-facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .fact-card {
+      min-width: 0;
+      padding: 13px 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--node-color);
+      border-radius: 6px;
+    }
+
+    .fact-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 13px;
+    }
+
+    .fact-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+      margin: 26px 0 24px;
+      padding: 8px 0 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab-button {
+      flex: 0 0 auto;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 13px 11px;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .tab-button:hover,
+    .tab-button:focus-visible {
+      color: var(--navy);
+      outline: none;
+    }
+
+    .tab-button.active {
+      color: var(--node-color);
+      border-bottom-color: var(--node-color);
+    }
+
+    .tab-count {
+      min-width: 20px;
+      padding: 2px 6px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .tab-button.active .tab-count {
+      color: var(--node-color);
+      border-color: color-mix(in srgb, var(--node-color) 30%, white);
+      background: color-mix(in srgb, var(--node-color) 8%, white);
+    }
+
+    .tab-panel {
+      animation: panel-in 180ms ease both;
+    }
+
+    @keyframes panel-in {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .level-pager {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .level-pager button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      color: var(--navy);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .level-pager button:hover,
+    .level-pager button:focus-visible {
+      color: var(--node-color);
+      border-color: var(--node-color);
+      box-shadow: 0 5px 14px rgba(30, 45, 65, 0.08);
+      outline: none;
+    }
+
+    .level-pager .pager-meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 26px 0 12px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .requirement-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .requirement-grid.single {
+      grid-template-columns: 1fr;
+    }
+
+    .requirement {
+      min-width: 0;
+      padding: 15px 16px;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--node-color);
+      border-radius: 6px;
+    }
+
+    .requirement h3 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 7px;
+      color: var(--navy);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .req-id {
+      flex: 0 0 auto;
+      padding: 2px 5px;
+      color: var(--node-color);
+      background: color-mix(in srgb, var(--node-color) 9%, white);
+      border: 1px solid color-mix(in srgb, var(--node-color) 28%, white);
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0;
+    }
+
+    .requirement p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .subsystem-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .subsystem {
+      min-width: 0;
+      padding: 14px;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .subsystem strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .subsystem span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .module-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .module-table th,
+    .module-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .module-table th {
+      color: var(--navy);
+      background: #fbfcfa;
+      font-weight: 800;
+    }
+
+    .module-table td {
+      color: var(--muted);
+    }
+
+    .module-table strong {
+      color: var(--navy);
+    }
+
+    .scope-list {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .scope-list li {
+      position: relative;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .scope-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 9px;
+      width: 6px;
+      height: 6px;
+      background: var(--node-color);
+      border-radius: 50%;
+    }
+
+    .scope-list strong {
+      color: var(--navy);
+    }
+
+    .group-title {
+      margin: 26px 0 12px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .group-block + .group-block {
+      margin-top: 8px;
+    }
+
+    .requirement-group {
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .requirement-group + .requirement-group {
+      margin-top: 10px;
+    }
+
+    .requirement-group summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      color: var(--navy);
+      background: var(--paper);
+      cursor: pointer;
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 15px;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .requirement-group summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .requirement-group summary::after {
+      content: "+";
+      flex: 0 0 auto;
+      margin-left: 10px;
+      color: var(--node-color);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      font-weight: 400;
+      transition: transform 160ms ease;
+    }
+
+    .requirement-group summary .tab-count {
+      margin-left: auto;
+    }
+
+    .requirement-group[open] summary::after {
+      transform: rotate(45deg);
+    }
+
+    .requirement-group-body {
+      padding: 14px 16px 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .metrics-table th,
+    .metrics-table td {
+      padding: 10px 11px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .metrics-table th {
+      color: var(--navy);
+      background: #fbfcfa;
+      font-weight: 800;
+    }
+
+    .metrics-table td {
+      color: var(--muted);
+    }
+
+    .metrics-table strong {
+      color: var(--navy);
+    }
+
+    .subsystem-detail {
+      display: grid;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .subsystem-card {
+      overflow: hidden;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--node-color);
+      border-radius: 8px;
+    }
+
+    .subsystem-card summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .subsystem-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .subsystem-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .subsystem-card-header h3 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .subsystem-card-header p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .subsystem-badge {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      color: var(--node-color);
+      background: color-mix(in srgb, var(--node-color) 10%, white);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .subsystem-card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px 18px 18px;
+    }
+
+    .subsystem-card-body h4 {
+      margin: 0 0 8px;
+      color: var(--navy);
+      font-size: 13px;
+    }
+
+    .subsystem-card-body ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .subsystem-card-body li + li {
+      margin-top: 5px;
+    }
+
+    .subsystem-card-body .module-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .module-tags li {
+      padding: 5px 8px;
+      color: var(--navy);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .module-group + .module-group {
+      margin-top: 24px;
+    }
+
+    .module-group {
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .module-group summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .module-group summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .module-group-title {
+      margin: 0;
+      padding: 14px 16px;
+      background: var(--paper);
+    }
+
+    .module-group-title::after {
+      content: "+";
+      flex: 0 0 auto;
+      margin-left: 10px;
+      width: auto;
+      height: auto;
+      color: var(--node-color);
+      background: transparent;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      font-weight: 400;
+      transition: transform 160ms ease;
+    }
+
+    .module-group-title .tab-count {
+      margin-left: auto;
+    }
+
+    .module-group[open] .module-group-title::after {
+      transform: rotate(45deg);
+    }
+
+    .module-group .module-detail-table {
+      border: 0;
+    }
+
+    .module-group-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 10px;
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .module-group-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .module-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .module-detail-table th,
+    .module-detail-table td {
+      padding: 10px 10px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .module-detail-table th {
+      color: var(--navy);
+      background: #fbfcfa;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .module-detail-table td {
+      color: var(--muted);
+    }
+
+    .module-detail-table strong {
+      color: var(--navy);
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 18px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .map-link,
+      .map-pulse,
+      .tab-panel {
+        animation: none;
+      }
+
+      .node,
+      .level-button,
+      .tab-button,
+      .map-node {
+        transition: none;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .page {
+        padding-top: 92px;
+      }
+
+      .topnav {
+        height: 60px;
+        padding: 0 20px;
+      }
+
+      .topnav-links {
+        display: none;
+      }
+
+      .pipeline {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .level-list {
+        position: static;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .level-button {
+        padding: 11px;
+      }
+
+      .level-copy small {
+        white-space: normal;
+      }
+
+      .subsystem-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .subsystem-card-body {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 88px 14px 44px;
+      }
+
+      .masthead {
+        display: block;
+      }
+
+      .cover-actions {
+        align-items: flex-start;
+        margin-top: 18px;
+      }
+
+      .meta {
+        display: inline-block;
+      }
+
+      .pipeline {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .pipeline::before {
+        display: none;
+      }
+
+      .node {
+        min-height: 96px;
+        padding: 13px 10px;
+      }
+
+      .level-list {
+        grid-template-columns: 1fr;
+      }
+
+      .detail {
+        min-height: 0;
+        padding: 0;
+      }
+
+      .detail-header {
+        display: block;
+      }
+
+      .position-tag {
+        display: inline-block;
+        margin-top: 14px;
+      }
+
+      .tabs {
+        margin-top: 22px;
+      }
+
+      .level-pager {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .level-pager button {
+        justify-content: center;
+      }
+
+      .level-pager .pager-meta {
+        text-align: center;
+      }
+
+      .requirement-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .overview-facts {
+        grid-template-columns: 1fr;
+      }
+
+      .subsystem-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .subsystem-card-header {
+        display: block;
+      }
+
+      .subsystem-badge {
+        display: inline-block;
+        margin-top: 10px;
+      }
+
+      .module-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .metrics-table,
+      .module-detail-table,
+      .verification-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav">
+    <a class="topnav-brand" href="#top">Complex Systems Engineering · 11.6</a>
+    <nav class="topnav-links" aria-label="页面导航">
+      <a href="#levels">层级分析</a>
+      <a href="./问题.docx" download>问题文档</a>
+      <a href="./我的答案.docx" download>我的答案</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="masthead">
+      <div>
+        <div class="eyebrow">Complex Systems Engineering · Interactive Display</div>
+        <h1>面向高阶智能驾驶的线控底盘系统：从任务到模块</h1>
+        <p>以智能纯电乘用车的线控底盘系统为对象，补全“任务、体系、整机、系统、子系统、模块”六个层次，并梳理每一层的系统需求、性能指标、安全要求和接口约束。</p>
+        <div class="stats" aria-label="内容概览">
+          <span class="stat"><strong>6</strong> 层级</span>
+          <span class="stat"><strong>5</strong> 子系统</span>
+          <span class="stat"><strong>18</strong> 模块</span>
+          <span class="stat"><strong>4</strong> 类核心需求</span>
+        </div>
+      </div>
+      <div class="cover-actions">
+        <div class="meta">11.6 · 面向高阶智能驾驶</div>
+        <div class="doc-links">
+          <a href="./问题.docx" download>问题文档</a>
+          <a href="./我的答案.docx" download>我的答案</a>
+        </div>
+      </div>
+    </header>
+
+    <p class="intro">点击任意层级查看内容；按 ← / → 可快速切换层级，标签页用于切换概览、分析要点、需求清单、关键指标、验证策略、子系统和模块。</p>
+
+    <section class="pipeline" id="pipeline" aria-label="系统层次导航"></section>
+
+    <ol class="chain" id="chain" aria-label="层次串联关系"></ol>
+
+    <section class="system-map" aria-label="线控底盘系统关系图">
+      <svg viewBox="0 0 1200 500" role="img" xmlns="http://www.w3.org/2000/svg">
+        <title>线控底盘系统关系图</title>
+        <desc>滑板底盘整车平台中的线控底盘系统与五个子系统连接关系。</desc>
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0H0V40" fill="none" stroke="#dfe4e8" stroke-width="1"/>
+          </pattern>
+        </defs>
+
+        <rect class="map-grid" x="0" y="0" width="1200" height="500" fill="url(#grid)"/>
+
+        <g class="map-platform" transform="translate(0 0)">
+          <rect x="104" y="132" width="992" height="282" rx="28" fill="rgba(255,255,255,0.78)" stroke="#263b52" stroke-width="2"/>
+          <text class="map-label" x="600" y="174" text-anchor="middle" fill="#263b52" font-size="18">智能纯电乘用车 · 滑板底盘平台</text>
+          <text class="map-sub-label" x="600" y="198" text-anchor="middle" fill="#5d6b7a">Skateboard Vehicle Platform</text>
+        </g>
+
+        <g class="map-node" transform="translate(420 270)">
+          <rect x="0" y="0" width="360" height="82" rx="16" fill="#263b52"/>
+          <circle class="map-pulse" cx="180" cy="41" r="52" fill="none" stroke="#8a2f3a" stroke-width="2"/>
+          <text class="map-label" x="180" y="32" text-anchor="middle" fill="#ffffff" font-size="20">线控底盘系统</text>
+          <text class="map-sub-label" x="180" y="58" text-anchor="middle" fill="#ffffff">X-by-Wire Chassis System</text>
+        </g>
+
+        <g class="map-node" transform="translate(144 172)">
+          <rect x="0" y="0" width="196" height="72" rx="12" fill="#ffffff" stroke="#a64a3b" stroke-width="2"/>
+          <circle cx="28" cy="36" r="15" fill="#a64a3b" opacity="0.14"/>
+          <text x="28" y="42" text-anchor="middle" fill="#a64a3b" font-size="17" font-weight="800">B</text>
+          <text class="map-label" x="62" y="31" fill="#263b52" font-size="18">线控制动</text>
+          <text class="map-sub-label" x="62" y="54" fill="#5d6b7a">BBW</text>
+        </g>
+
+        <g class="map-node" transform="translate(474 150)">
+          <rect x="0" y="0" width="196" height="72" rx="12" fill="#ffffff" stroke="#1f7a7a" stroke-width="2"/>
+          <circle cx="28" cy="36" r="15" fill="#1f7a7a" opacity="0.14"/>
+          <text x="28" y="42" text-anchor="middle" fill="#1f7a7a" font-size="17" font-weight="800">S</text>
+          <text class="map-label" x="62" y="31" fill="#263b52" font-size="18">线控转向</text>
+          <text class="map-sub-label" x="62" y="54" fill="#5d6b7a">SbW</text>
+        </g>
+
+        <g class="map-node" transform="translate(832 172)">
+          <rect x="0" y="0" width="196" height="72" rx="12" fill="#ffffff" stroke="#9a6b1f" stroke-width="2"/>
+          <circle cx="28" cy="36" r="15" fill="#9a6b1f" opacity="0.14"/>
+          <text x="28" y="42" text-anchor="middle" fill="#9a6b1f" font-size="17" font-weight="800">A</text>
+          <text class="map-label" x="62" y="31" fill="#263b52" font-size="18">线控悬架</text>
+          <text class="map-sub-label" x="62" y="54" fill="#5d6b7a">Active</text>
+        </g>
+
+        <g class="map-node" transform="translate(158 336)">
+          <rect x="0" y="0" width="196" height="72" rx="12" fill="#ffffff" stroke="#2f6f9f" stroke-width="2"/>
+          <circle cx="28" cy="36" r="15" fill="#2f6f9f" opacity="0.14"/>
+          <text x="28" y="42" text-anchor="middle" fill="#2f6f9f" font-size="17" font-weight="800">D</text>
+          <text class="map-label" x="62" y="31" fill="#263b52" font-size="18">线控驱动</text>
+          <text class="map-sub-label" x="62" y="54" fill="#5d6b7a">DBW</text>
+        </g>
+
+        <g class="map-node" transform="translate(846 336)">
+          <rect x="0" y="0" width="196" height="72" rx="12" fill="#ffffff" stroke="#39764d" stroke-width="2"/>
+          <circle cx="28" cy="36" r="15" fill="#39764d" opacity="0.14"/>
+          <text x="28" y="42" text-anchor="middle" fill="#39764d" font-size="17" font-weight="800">G</text>
+          <text class="map-label" x="62" y="31" fill="#263b52" font-size="18">线控换挡</text>
+          <text class="map-sub-label" x="62" y="54" fill="#5d6b7a">ShBW</text>
+        </g>
+
+        <g stroke-linecap="round">
+          <path class="map-link" d="M340 230 C390 260 430 280 500 300" stroke="#a64a3b"/>
+          <path class="map-link" d="M570 230 C580 250 590 265 600 288" stroke="#1f7a7a"/>
+          <path class="map-link" d="M850 230 C820 255 790 280 760 300" stroke="#9a6b1f"/>
+          <path class="map-link" d="M330 360 C390 335 430 320 500 305" stroke="#2f6f9f"/>
+          <path class="map-link" d="M850 360 C820 335 790 320 760 305" stroke="#39764d"/>
+        </g>
+
+        <g fill="#263b52">
+          <circle cx="122" cy="122" r="31" fill="#f5f7f8" stroke="#263b52" stroke-width="2"/>
+          <circle cx="1078" cy="122" r="31" fill="#f5f7f8" stroke="#263b52" stroke-width="2"/>
+          <circle cx="122" cy="414" r="31" fill="#f5f7f8" stroke="#263b52" stroke-width="2"/>
+          <circle cx="1078" cy="414" r="31" fill="#f5f7f8" stroke="#263b52" stroke-width="2"/>
+        </g>
+      </svg>
+    </section>
+
+    <section class="workspace" id="levels">
+      <ol class="level-list" id="levelList"></ol>
+
+      <article class="detail" id="detail" aria-live="polite"></article>
+    </section>
+
+    <div class="footer">
+      <span>串联关系：任务 → 体系 → 整机 → 系统 → 子系统 → 模块</span>
+      <span>对象：面向高阶智能驾驶的线控底盘系统</span>
+    </div>
+  </main>
+
+  <script>
+    const levels = [
+      {
+        id: "mission",
+        index: "01",
+        title: "任务",
+        en: "Mission",
+        color: "#5b5bd6",
+        position: "顶层目标层",
+        short: "高阶自动驾驶与高精度运动控制",
+        summary: "任务层定义了整项工作的价值来源：<strong>实现车辆高精度运动控制，支持高阶自动驾驶</strong>，并保证行驶稳定、转向制动响应快速、车身姿态可控、驾乘安全舒适。",
+        scope: [
+          "任务目标：实现车辆高精度运动控制，支撑高阶自动驾驶。",
+          "控制对象：整车运动控制的纵向加减速、横向转向、垂向车身姿态。",
+          "用户价值：行驶稳定、转向制动响应快速、车身姿态可控、驾乘安全舒适。",
+          "任务边界：定义“要达到什么”，不限定具体技术路线或子系统实现。"
+        ],
+        researchPoints: [
+          { title: "从自动驾驶任务到整车运动需求", text: "将高阶自动驾驶的轨迹、速度、横向请求和驾驶模式转化为可量化、可验证的整车运动控制目标。" },
+          { title: "纵向、横向、垂向三向耦合", text: "高速制动、弯道转向、车身姿态之间存在耦合，需在任务层明确协调优先级和边界。" },
+          { title: "场景覆盖与运行边界", text: "以高速巡航、城市跟车、泊车、紧急避障、低附着、雨天和隧道等场景定义任务域。" },
+          { title: "安全、舒适与效率的综合权衡", text: "在低时延、高精度、乘坐舒适和能量效率之间建立可调校的工程目标。" },
+          { title: "需求可追溯性", text: "任务层需求应能向下分解到体系、整机、系统、子系统和模块，并形成验证证据链。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["任务级", "场景库、MIL/SIL、道路试验", "任务覆盖率、响应时延、舒适性评分"],
+            ["整车级", "VIL、试验场、公共道路", "稳定性、制动距离、转向响应"],
+            ["追溯性", "需求矩阵、变更管理、评审", "需求覆盖率和验证证据链"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "功能需求",
+            items: [
+              { title: "自动驾驶任务承接", text: "将自动驾驶系统输出的轨迹、速度、横向请求和驾驶模式转化为整车运动目标。" },
+              { title: "三向运动综合", text: "支持纵向加减速、横向转向、垂向车身姿态的独立与耦合控制。" },
+              { title: "多工况运行", text: "覆盖高速巡航、城市跟车、泊车、紧急避障、坡道、低附着、雨天和隧道等场景。" },
+              { title: "人机共驾与接管", text: "驾驶员接管、退出和请求冲突时，控制权切换连续、可预测且不产生突变。" }
+            ]
+          },
+          {
+            name: "性能需求",
+            items: [
+              { title: "运动控制精度", text: "纵向加速度、横摆角速度、车身侧倾角、行驶轨迹等关键量满足自动驾驶控制误差要求。" },
+              { title: "执行响应带宽", text: "转向、制动、驱动指令到车辆运动响应的延迟和带宽满足高阶自动驾驶的动态要求。" },
+              { title: "行驶稳定性", text: "在附着突变、侧风、紧急变道、制动转向耦合工况下保持稳定可控。" },
+              { title: "驾乘舒适性", text: "加速、制动、转向、过坎过程中的 jerk、侧倾率、俯仰率和垂向振动受控。" }
+            ]
+          },
+          {
+            name: "安全与可靠性",
+            items: [
+              { title: "功能安全", text: "系统遵循 ISO 26262，转向、制动等安全关键路径满足对应 ASIL 等级。" },
+              { title: "预期功能安全", text: "对传感器限制、环境误判、执行器性能不足等 SOTIF 风险进行识别和抑制。" },
+              { title: "失效安全", text: "任一关键回路失效时，整车可进入安全状态或保持最小安全运行能力。" },
+              { title: "信息安全", text: "防止非法控车、运动指令篡改、总线注入和远程攻击。" }
+            ]
+          },
+          {
+            name: "法规与验证",
+            items: [
+              { title: "法规符合性", text: "满足 GB、ECE、Euro NCAP、UN R13/R79/R152 等适用法规和评价要求。" },
+              { title: "全链路验证", text: "采用场景库、SIL、HIL、VIL、试验场和公共道路进行闭环验证。" },
+              { title: "可追溯性", text: "任务级需求能够向下分解，并与系统、子系统、模块的验证证据建立追溯。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["指标方向", "典型要求", "验证方式"],
+          rows: [
+            ["纵向响应", "制动指令到实际减速度 < 100 ms", "HIL / 整车试验"],
+            ["横向响应", "转向指令到前轮转角 < 50 ms", "HIL / 整车试验"],
+            ["稳定性", "横摆角速度、侧偏角控制在目标区间", "操稳试验 / 场景测试"],
+            ["舒适性", "纵向 jerk、垂向振动满足主观/客观指标", "客观测量 / 主观评价"]
+          ]
+        },
+        requirements: [
+          { title: "高阶自动驾驶支撑", text: "为 L3 及以上自动驾驶功能提供可靠、可执行、可监控的车辆运动执行能力。" },
+          { title: "高精度运动控制", text: "纵向加减速、横向转向、垂向车身姿态应具备连续、精确、可重复的控制效果。" },
+          { title: "安全与舒适", text: "覆盖正常工况与失效工况，兼顾动态响应、驾乘平顺性和车内静谧性。" },
+          { title: "快速响应", text: "转向、制动、驱动等关键控制链路满足自动驾驶对低延迟和高确定性的要求。" }
+        ]
+      },
+      {
+        id: "sos",
+        index: "02",
+        title: "体系",
+        en: "System of Systems",
+        color: "#148f8f",
+        position: "协同系统层",
+        short: "智能网联汽车交通体系",
+        summary: "体系层是多个独立系统协同形成的交通运行整体：<strong>智能网联汽车交通体系</strong>，包含智驾云平台、V2X 车路协同、充电网、道路感知设施、诊断运维体系等。",
+        scope: [
+          "体系构成：智驾云平台、V2X 车路协同、充电网、道路感知设施、诊断运维体系。",
+          "组织关系：各系统独立运行，又通过数据、服务、任务和运营目标形成 System of Systems。",
+          "核心问题：跨系统协同、互操作、通信时延、数据安全、规模扩展和持续运维。",
+          "体系边界：覆盖车辆上路运行所需的云端、路侧、能源、地图和运维服务。"
+        ],
+        researchPoints: [
+          { title: "体系涌现行为", text: "体系能力来自车辆、云、路侧、能源和运维系统的协同，而非单一系统功能的简单叠加。" },
+          { title: "互操作与数据语义", text: "不同品牌车辆、路侧设备和云平台之间需要统一消息集、数据语义和接口版本。" },
+          { title: "安全关键通信", text: "V2X 安全消息需要区分实时性、可靠性、完整性和保密性要求，并设计本地降级策略。" },
+          { title: "城市规模扩展", text: "高密度交通、大量并发请求和服务节点扩展需要评估带宽、算力、时延和故障隔离能力。" },
+          { title: "数据治理与责任边界", text: "位置、视频和个人数据需要分级分类，并明确车辆、平台、运营方之间的责任边界。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["体系仿真", "交通流、通信与云服务联合仿真", "吞吐、时延、拥塞和降级表现"],
+            ["车路协同", "网络在环、封闭场地、城市试点", "预警覆盖率、通信时延、误报率"],
+            ["网络安全", "渗透测试、异常注入、跨域认证", "攻击面清单、检测时间、恢复时间"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "协同功能需求",
+            items: [
+              { title: "云边协同", text: "智驾云平台向车辆下发地图、任务、OTA、车队策略和场景数据，车辆上传状态与事件。" },
+              { title: "车路协同", text: "RSU、路侧感知、信号灯、施工与事故预警与车辆共享，形成超视距感知。" },
+              { title: "能源协同", text: "充电网结合剩余里程、SOC、路线、电价和充电桩状态进行补能规划。" },
+              { title: "诊断运维协同", text: "车辆健康、故障码、软件版本、部件寿命进入云端诊断和预防性维护闭环。" }
+            ]
+          },
+          {
+            name: "性能需求",
+            items: [
+              { title: "低时延通信", text: "安全相关 V2X 消息端到端时延 < 100 ms，理想场景 < 50 ms。" },
+              { title: "定位与地图", text: "城市峡谷、隧道、地下停车场等场景提供可用定位、地图和里程级信息。" },
+              { title: "通信可靠性", text: "关键消息具备传输确认、丢包检测、中断检测和本地降级策略。" },
+              { title: "数据吞吐", text: "支持高密度交通下路侧感知、车辆轨迹、视频和云端地图的高并发处理。" }
+            ]
+          },
+          {
+            name: "安全与信息需求",
+            items: [
+              { title: "数据合规", text: "个人数据、位置数据和视频数据分级分类、脱敏，并满足隐私法规。" },
+              { title: "跨域信任", text: "云、路侧、车辆、充电设施之间具备身份认证、授权、完整性校验和防重放能力。" },
+              { title: "运行安全", text: "通信丢失、路侧设备失效或云服务不可用时，车辆不产生非预期控制动作。" },
+              { title: "网络安全", text: "体系具备入侵检测、异常上报、快速隔离和恢复能力。" }
+            ]
+          },
+          {
+            name: "互操作与可扩展需求",
+            items: [
+              { title: "标准协议", text: "遵循 C-V2X、5G、V2X 消息集、地图接口、充电协议和数据接口标准。" },
+              { title: "开放接口", text: "支持不同品牌车辆、第三方服务和城市级基础设施接入。" },
+              { title: "规模扩展", text: "城市级车辆规模、并发请求、服务节点和路侧设备可平滑扩展。" },
+              { title: "生命周期演进", text: "体系能力可升级、可替换、可运维，并支持旧能力安全退出。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["协同能力", "典型要求", "主要接口"],
+          rows: [
+            ["安全类 V2X", "端到端 < 100 ms", "车辆 ↔ RSU / 云"],
+            ["超视距感知", "关键事件覆盖率与误报率达标", "路侧感知 ↔ 车辆"],
+            ["补能规划", "路线、SOC、电价、桩状态协同", "车辆 ↔ 充电网"],
+            ["远程运维", "故障码、软件版本、寿命数据闭环", "车辆 ↔ 诊断运维平台"]
+          ]
+        },
+        requirements: [
+          { title: "多系统协同", text: "智驾云平台、车路协同、道路感知、充电网与诊断运维系统之间形成一致的信息流和控制闭环。" },
+          { title: "数据互联互通", text: "车辆状态、道路事件、地图、能源和运维数据采用可扩展接口，支持跨系统共享。" },
+          { title: "低时延车路协同", text: "对安全相关的路侧感知与预警信息提供低时延、高可靠传输和边界降级策略。" },
+          { title: "可扩展与可持续运维", text: "体系支持车辆规模增长、新服务接入和全生命周期诊断维护。" }
+        ]
+      },
+      {
+        id: "vehicle",
+        index: "03",
+        title: "整机",
+        en: "Vehicles",
+        color: "#2f7fc1",
+        position: "整车平台层",
+        short: "搭载全域线控底盘的智能纯电乘用车",
+        summary: "整机层是承载任务的具体产品：<strong>搭载全域线控底盘的智能纯电乘用车</strong>，采用滑板底盘整车架构，为线控底盘提供空间、能源、电子电气与安全框架。",
+        scope: [
+          "整车对象：搭载全域线控底盘的智能纯电乘用车。",
+          "架构特征：滑板底盘整车，上下车体解耦、模块化布置。",
+          "物理组成：动力电池、电驱系统、线控底盘、智能驾驶、座舱、车身与电子电气架构。",
+          "层级职责：为线控底盘提供能量、结构、通信、功能安全和整车法规约束。"
+        ],
+        researchPoints: [
+          { title: "滑板底盘架构", text: "将电池、电驱和线控执行器高度集成，形成上下车体解耦的整车平台。" },
+          { title: "电子电气架构演进", text: "从分布式 ECU 向域集中/区域控制演进，支持高速通信、时间同步和 OTA。" },
+          { title: "整车安全目标分解", text: "将碰撞安全、动力电池安全和功能安全目标分解到线控底盘及执行子系统。" },
+          { title: "多目标整车性能", text: "在续航、动力、制动、操稳、NVH、热管理和成本之间建立可量化指标。" },
+          { title: "量产与准入约束", text: "整备质量、BOM、制造节拍、维修性、公告和网络安全准入共同约束系统设计。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["整车性能", "性能试验、能耗试验、制动与操稳试验", "加速、续航、制动距离、横摆响应"],
+            ["安全集成", "碰撞、电池安全、功能安全、EMC", "安全目标符合性、ASIL 分解证据"],
+            ["量产验证", "DV/PV、装配、耐久、型式认证", "BOM、质量、维修性、公告文件"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "功能需求",
+            items: [
+              { title: "全域线控集成", text: "制动、转向、驱动、悬架、换挡等执行功能统一纳入整车电子电气架构和运动控制域。" },
+              { title: "智能驾驶功能支持", text: "整车为 L2+ / L3+ 功能提供感知、算力、供电、通信和安全冗余。" },
+              { title: "整车能量管理", text: "动力电池、电驱、空调、底盘执行器协调工作，兼顾续航、性能与热安全。" },
+              { title: "人机交互与模式切换", text: "驾驶模式、底盘模式、能量回收等级和自动驾驶状态可在 HMI 中清晰呈现。" }
+            ]
+          },
+          {
+            name: "性能需求",
+            items: [
+              { title: "动力与能耗", text: "满足整车加速、最高车速、爬坡、续航和百公里能耗指标。" },
+              { title: "制动与操稳", text: "满足制动距离、横向加速度、横摆响应、低速灵活性和高速稳定性。" },
+              { title: "NVH 与平顺性", text: "电机、执行器、底盘结构噪声和振动满足整车舒适性目标。" },
+              { title: "热管理", text: "电池、电驱、底盘执行器在高温、低温、连续激烈驾驶下保持性能。" }
+            ]
+          },
+          {
+            name: "安全与可靠性",
+            items: [
+              { title: "整车功能安全", text: "关键安全目标按 ISO 26262 分解到系统与部件，满足 ASIL 要求。" },
+              { title: "冗余电源与通信", text: "关键执行链路提供电源、通信和计算冗余，支持故障运行。" },
+              { title: "碰撞与电池安全", text: "满足正面、侧面、尾部碰撞和动力电池热失控防护要求。" },
+              { title: "整车信息安全", text: "覆盖 OTA、诊断口、蓝牙、蜂窝、V2X 等攻击面。" }
+            ]
+          },
+          {
+            name: "架构与量产约束",
+            items: [
+              { title: "滑板底盘适配", text: "动力电池、电驱、线控执行器和上下车体之间实现接口解耦与空间复用。" },
+              { title: "电子电气架构", text: "采用域集中或区域控制器，支持高速通信、时间同步和功能扩展。" },
+              { title: "重量与成本", text: "整备质量、BOM 成本、制造节拍和维修性满足量产约束。" },
+              { title: "整车型式认证", text: "满足公告、3C、环保、能耗和网络安全等准入要求。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["整车指标", "典型要求", "验证方式"],
+          rows: [
+            ["动力性", "0-100 km/h、最高车速、爬坡能力达标", "整车性能试验"],
+            ["制动安全", "制动距离、制动稳定性满足法规与评价要求", "制动试验"],
+            ["续航与能耗", "CLTC / 综合工况续航与能耗达标", "能耗试验"],
+            ["NVH", "车内噪声、振动、平顺性满足目标", "NVH 试验 / 主观评价"]
+          ]
+        },
+        requirements: [
+          { title: "全域线控集成", text: "制动、转向、驱动、悬架、换挡等执行功能统一纳入整车电子电气架构和运动控制域。" },
+          { title: "滑板底盘适配", text: "动力电池、电驱、线控执行器和上下车体之间实现模块化布置与接口解耦。" },
+          { title: "功能安全与冗余", text: "关键执行链路具备失效检测、降级运行和冗余备份，满足整车功能安全目标。" },
+          { title: "整车性能指标", text: "续航、能耗、热管理、NVH、操控稳定性和碰撞安全均满足整车级设计约束。" }
+        ]
+      },
+      {
+        id: "system",
+        index: "04",
+        title: "系统",
+        en: "Systems",
+        color: "#d5533f",
+        position: "选中对象层",
+        short: "面向高阶智能驾驶的线控底盘系统",
+        summary: "本次分析选中的核心对象是<strong>面向高阶智能驾驶的线控底盘系统</strong>。它接收自动驾驶域的高阶运动决策，并将任务分解为制动、转向、驱动、悬架和换挡五类执行能力，是整车运动控制的执行底座。",
+        scope: [
+          "系统对象：线控底盘系统。",
+          "功能域：制动、转向、驱动、悬架、换挡五个运动控制域。",
+          "物理组成：底盘域控制器、各类传感器、执行器、线束、电源与通信网络。",
+          "接口关系：上游接收自动驾驶域运动请求，下游分解到五个子系统。"
+        ],
+        researchPoints: [
+          { title: "线控底盘域控制", text: "底盘域控制器统一解析、仲裁和协调五个执行子系统的运动请求。" },
+          { title: "运动控制闭环", text: "车速、横摆、侧倾和附着状态估计与执行反馈形成实时闭环。" },
+          { title: "跨域耦合控制", text: "弯道制动、转向加速、紧急避障等场景需要制动、转向、驱动和悬架协同。" },
+          { title: "高等级功能安全", text: "转向和制动关键回路需按高 ASIL 目标设计，并支持故障运行或安全降级。" },
+          { title: "执行能力监测", text: "系统需实时识别执行器性能退化、传感器漂移和通信异常，并向自动驾驶域上报。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["系统集成", "HIL、底盘台架、故障注入", "控制周期、端到端时延、精度"],
+            ["功能安全", "FMEA、FTA、ASIL 分析、故障注入", "安全机制覆盖率、FTTI 符合性"],
+            ["耐久环境", "温度、振动、盐雾、EMC、耐久", "寿命、环境适应性、失效模式"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "功能需求",
+            items: [
+              { title: "运动请求解析与仲裁", text: "解析 AD 域的运动请求，与驾驶员请求、底盘可用能力进行仲裁和限制。" },
+              { title: "五域协调控制", text: "制动、转向、驱动、悬架、换挡在统一底盘域控制策略下协调工作。" },
+              { title: "状态估计与监测", text: "实时估计车速、横摆、侧倾、附着和底盘执行能力，并监测异常。" },
+              { title: "故障处理与降级", text: "支持故障识别、能力降级、备份切换和安全状态进入。" },
+              { title: "标定与 OTA", text: "支持底盘参数标定、软件升级、配置管理和版本追溯。" }
+            ]
+          },
+          {
+            name: "性能需求",
+            items: [
+              { title: "控制周期", text: "运动控制主循环满足实时周期，例如 1/5/10 ms 级别。" },
+              { title: "通信性能", text: "采用 CAN FD、车载以太网等，满足带宽、时延、时间同步和确定性要求。" },
+              { title: "执行精度", text: "转向角、制动减速度、驱动转矩、悬架高度等满足精度目标。" },
+              { title: "系统响应", text: "从运动请求到执行动作的端到端延迟满足整车控制目标。" }
+            ]
+          },
+          {
+            name: "安全与可靠性",
+            items: [
+              { title: "功能安全", text: "转向、制动等关键链路按高等级功能安全目标设计，关键回路满足 ASIL D。" },
+              { title: "故障运行", text: "电源、通信、控制器或执行器单点失效时，仍可保持一段最小安全运行。" },
+              { title: "安全状态", text: "不可继续运行时，系统能够进入可控安全状态并给出明确驾驶员提示。" },
+              { title: "预期功能安全", text: "覆盖传感器漂移、执行器性能退化、路面状态误判等 SOTIF 场景。" },
+              { title: "耐久与环境", text: "满足温度、湿度、振动、盐雾、EMC 和整车寿命要求。" }
+            ]
+          },
+          {
+            name: "接口与约束需求",
+            items: [
+              { title: "上游接口", text: "自动驾驶域 → 底盘域：运动请求、模式、目标轨迹、状态反馈、故障状态。" },
+              { title: "下游接口", text: "底盘域 → 各执行子系统：目标指令、使能、反馈、诊断、标定参数。" },
+              { title: "整车接口", text: "与电池、电驱、热管理、HMI 和诊断系统共享车辆状态。" },
+              { title: "物理约束", text: "满足布置、质量、成本、供电电压范围、线束和散热约束。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["系统指标", "典型要求", "验证方式"],
+          rows: [
+            ["控制周期", "运动控制主循环 1-10 ms", "台架 / HIL"],
+            ["制动响应", "制动请求到执行响应 < 100 ms", "HIL / 整车试验"],
+            ["转向响应", "转向请求到执行响应 < 50 ms", "HIL / 整车试验"],
+            ["安全等级", "关键回路满足 ASIL D 与故障运行", "功能安全评估 / 故障注入"]
+          ]
+        },
+        requirements: [
+          { title: "五域协同控制", text: "制动、转向、驱动、悬架、换挡五个子系统在统一底盘域控制策略下协调工作。" },
+          { title: "整车控制接口", text: "向自动驾驶域开放稳定的运动请求接口，并反馈执行状态、故障状态和可用能力。" },
+          { title: "高安全等级", text: "线控功能按高等级功能安全目标设计，关键回路支持故障运行或安全降级。" },
+          { title: "确定性与可诊断性", text: "控制周期、通信时延、执行精度和在线诊断满足整车运动控制要求。" }
+        ]
+      },
+      {
+        id: "subsystems",
+        index: "05",
+        title: "子系统",
+        en: "Sub-systems",
+        color: "#c18518",
+        position: "功能分解层",
+        short: "线控底盘下属五大子系统",
+        summary: "线控底盘系统进一步分解为<strong>线控制动、线控转向、线控驱动、线控悬架、线控换挡</strong>五个子系统。每个子系统在自身功能域内完成感知、决策与执行。",
+        scope: [
+          "子系统对象：线控制动、线控转向、线控驱动、线控悬架、线控换挡。",
+          "分解逻辑：按车辆运动的纵向、横向、垂向、挡位和制动功能域划分。",
+          "共同职责：接收底盘域指令，完成本地传感、控制、执行、诊断与安全保护。",
+          "边界条件：各子系统可独立开发与验证，但需满足统一接口、同步与整车安全目标。"
+        ],
+        researchPoints: [
+          { title: "功能域分解", text: "五个子系统分别负责制动、转向、驱动、悬架和换挡，便于独立开发与测试。" },
+          { title: "子系统间耦合", text: "制动与驱动、转向与悬架、换挡与驱动之间存在相互约束，需要协同标定。" },
+          { title: "本地安全保护", text: "每个子系统具备本地故障诊断、降级和必要时的冗余执行能力。" },
+          { title: "统一接口与时间同步", text: "统一运动指令、状态反馈和时间同步是多域协调控制的基础。" },
+          { title: "独立验证边界", text: "各子系统在装车前应完成传感器、控制器、执行器和通信的独立验证。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["子系统台架", "制动台架、转向台架、悬架台架、换挡台架", "响应时间、精度、冗余能力"],
+            ["故障注入", "传感器失效、电机失效、通信中断", "降级策略、安全状态、恢复时间"],
+            ["耐久环境", "振动、温度、盐雾、EMC", "耐久寿命、环境适应性"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "子系统共同需求",
+            items: [
+              { title: "统一控制接口", text: "五个子系统接收统一运动指令，反馈执行状态、故障状态和可用能力。" },
+              { title: "时间同步", text: "传感器采样、控制计算和执行反馈保持时间同步，满足多域协调。" },
+              { title: "独立安全", text: "每个子系统具备本地故障诊断、降级和必要时的冗余执行能力。" },
+              { title: "整车协同", text: "在弯道制动、转向加速、车身姿态控制等工况中实现跨域协调。" },
+              { title: "耐久与维修", text: "满足整车寿命、环境、EMC、NVH、维修性和 OTA 升级要求。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["子系统", "关键指标", "典型要求"],
+          rows: [
+            ["线控制动 BBW", "制动响应 / 最大减速度", "响应 < 100 ms；连续 0-1 g 可控制动；ASIL D"],
+            ["线控转向 SbW", "转向响应 / 转角精度", "响应 < 50 ms；前轮转角精度高；故障运行；ASIL D"],
+            ["线控驱动 DBW", "转矩响应 / 转矩精度", "响应 < 50 ms；转矩精度 ±3%；过流/过温保护"],
+            ["线控悬架", "阻尼响应 / 高度调节", "CDC 阻尼响应快；支持载荷补偿与自动调平"],
+            ["线控换挡 ShBW", "换挡响应 / 互锁", "响应 < 100 ms；多条件互锁；失效进入 P/N"]
+          ]
+        },
+        subsystemDetails: [
+          {
+            name: "线控制动 BBW",
+            en: "Brake-by-Wire",
+            badge: "安全关键",
+            description: "取消或弱化传统液压机械连接，通过电控方式实现车辆减速、停车和稳定控制。",
+            modules: ["EHB/EMB 执行模块", "制动踏板传感模块", "制动 ECU", "压力传感模块", "冗余保护模块"],
+            requirements: [
+              "提供 0-1 g 连续可控减速度，制动响应时间 < 100 ms。",
+              "协调再生制动与摩擦制动，最大化能量回收并保证制动力连续。",
+              "支持 ABS、ESC、AEB、坡道辅助和自动驻车。",
+              "电源、通信、控制器和执行机构具备冗余，满足故障运行和 ASIL D。",
+              "制动踏板感觉、噪声、振动和寿命满足整车要求。"
+            ]
+          },
+          {
+            name: "线控转向 SbW",
+            en: "Steer-by-Wire",
+            badge: "安全关键",
+            description: "方向盘与前轮之间无机械刚性连接，通过控制器和电机实现转向执行与路感反馈。",
+            modules: ["路感模拟模块", "转向执行电机模块", "转向控制器", "转角传感器模块"],
+            requirements: [
+              "实现方向盘转角与车轮转角的解耦控制，支持可变转向比和速度自适应。",
+              "前轮转角精度高，响应时间 < 50 ms，满足低速灵活和高速稳定。",
+              "路感模拟具备可调转向力矩、阻尼、回正和振动反馈。",
+              "双控制器、双电源、双传感与双执行路径实现故障运行或安全停车。",
+              "满足 ASIL D，并覆盖传感器失效、电机失效和通信失效场景。"
+            ]
+          },
+          {
+            name: "线控驱动 DBW",
+            en: "Drive-by-Wire",
+            badge: "动力执行",
+            description: "将驱动转矩请求转化为电机输出，实现车辆纵向加速、牵引力控制和能量回收。",
+            modules: ["扭矩采集模块", "电机驱动控制模块"],
+            requirements: [
+              "驱动转矩控制精度高、响应快，典型转矩响应 < 50 ms。",
+              "支持牵引力控制、扭矩矢量分配和单轮/单轴扭矩调节。",
+              "再生制动转矩与摩擦制动协调，避免驱动/制动切换冲击。",
+              "提供过温、过流、过压、堵转和转矩安全监控。",
+              "在驱动请求异常或通信失效时，安全进入限制转矩或零转矩状态。"
+            ]
+          },
+          {
+            name: "线控悬架",
+            en: "Active Suspension / Air Suspension",
+            badge: "舒适与姿态",
+            description: "通过空气弹簧、CDC 阻尼和控制器调节车身高度、阻尼与姿态。",
+            modules: ["高度传感器", "CDC 阻尼调节模块", "空气弹簧模块", "悬架控制器"],
+            requirements: [
+              "支持车身高度调节、载荷补偿和自动调平。",
+              "CDC 阻尼连续可调，响应快，改善平顺性、操稳性和制动俯仰。",
+              "空气弹簧具备泄漏检测、压力管理和失效保护。",
+              "悬架控制器融合高度、加速度、轮速和车辆状态进行自适应控制。",
+              "满足 NVH、密封、防尘、防水和耐久要求。"
+            ]
+          },
+          {
+            name: "线控换挡 ShBW",
+            en: "Shift-by-Wire",
+            badge: "状态执行",
+            description: "通过传感器和电控执行器实现挡位识别、切换、互锁和驻车功能。",
+            modules: ["换挡传感器", "换挡执行电机模块", "换挡控制板"],
+            requirements: [
+              "准确识别 P、R、N、D 等挡位状态，并提供冗余信号。",
+              "换挡动作可靠，响应时间 < 100 ms，满足驻车和行车切换要求。",
+              "具备车速、制动、驾驶员意图等多条件互锁，防止误换挡。",
+              "失效时安全进入 P 或 N 状态，并给出明确提示。",
+              "支持 OTA、故障码记录和维修模式。"
+            ]
+          }
+        ],
+        requirements: [
+          { title: "线控制动 BBW", text: "实现电控减速与制动，保证制动响应、制动力分配、能量回收协调和冗余制动能力。" },
+          { title: "线控转向 SbW", text: "实现转向角精确执行与路感模拟，保证低速灵活、高速稳定和失效保护。" },
+          { title: "线控驱动 DBW", text: "实现驱动转矩精确响应，支持牵引力控制、扭矩矢量分配和能量效率优化。" },
+          { title: "线控悬架", text: "实现车身高度、阻尼和姿态调节，改善平顺性、操稳性和通过性。" },
+          { title: "线控换挡 ShBW", text: "实现挡位状态识别与执行，保证换挡准确、互锁可靠和故障安全。" }
+        ],
+        subsystemStrip: [
+          { name: "BBW 线控制动", text: "制动响应快、冗余完善" },
+          { name: "SbW 线控转向", text: "转角精确、路感真实" },
+          { name: "DBW 线控驱动", text: "转矩准确、能效协同" },
+          { name: "线控悬架", text: "姿态可控、乘坐舒适" },
+          { name: "ShBW 线控换挡", text: "挡位可靠、互锁安全" }
+        ]
+      },
+      {
+        id: "modules",
+        index: "06",
+        title: "模块",
+        en: "Modules",
+        color: "#3f8a55",
+        position: "最小实现层",
+        short: "每个子系统再拆模块",
+        summary: "模块层将五个子系统拆分为具体可实现的<strong>传感、控制、执行与保护模块</strong>。每个模块承担明确输入输出和功能安全职责，是线控底盘最终落地的最小单元。",
+        scope: [
+          "模块对象：传感器、控制器、执行器、电源与保护等最小实现单元。",
+          "分解依据：按输入、处理、输出、安全和物理边界进行模块化。",
+          "共同职责：完成特定传感、计算、驱动、保护或诊断功能。",
+          "落地价值：支持独立开发、测试、采购、维修和软件升级。"
+        ],
+        researchPoints: [
+          { title: "信号链完整性", text: "每个传感模块需保证量程、精度、采样率、时延和信号完整性的可验证。" },
+          { title: "控制单元实时性", text: "制动、转向、悬架和换挡控制器需满足实时计算、通信和诊断要求。" },
+          { title: "执行器性能与热约束", text: "执行模块需同时满足力/转矩、速度、响应、寿命和热保护要求。" },
+          { title: "冗余与保护", text: "电源、通信、控制器和执行路径的备份与切换决定故障运行能力。" },
+          { title: "模块化制造与软件升级", text: "标准化接口、故障隔离和 OTA 能力影响量产、维修和迭代效率。" }
+        ],
+        verification: {
+          headers: ["验证层级", "主要方法", "关键输出"],
+          rows: [
+            ["模块 DV/PV", "功能测试、性能测试、可靠性测试", "量程、精度、寿命、失效模式"],
+            ["EMC 与环境", "EMC、温度、振动、防尘防水", "环境适应性、电磁兼容性"],
+            ["软件测试", "单元测试、集成测试、HIL", "代码覆盖、接口一致性、诊断覆盖"]
+          ]
+        },
+        requirementGroups: [
+          {
+            name: "模块层共同需求",
+            items: [
+              { title: "传感器模块", text: "踏板、转角、高度、压力、扭矩、挡位等信号需满足量程、精度、采样率、时延与冗余要求。" },
+              { title: "控制器模块", text: "制动、转向、悬架、换挡等控制单元需具备实时计算、通信、诊断、安全监控和标定能力。" },
+              { title: "执行器模块", text: "制动、转向、驱动、换挡等执行机构需满足力/转矩、速度、响应、寿命和热约束。" },
+              { title: "保护模块", text: "电源、通信、控制器和执行器等关键路径提供备份、监控和安全切换。" },
+              { title: "模块化与制造", text: "接口标准化、装配可制造、故障可隔离、软件可 OTA 升级。" }
+            ]
+          }
+        ],
+        metrics: {
+          headers: ["模块类别", "关键指标", "典型要求"],
+          rows: [
+            ["传感器", "精度 / 采样 / 冗余", "量程覆盖、采样快、时延低、双通道或冗余信号"],
+            ["控制器", "控制周期 / 通信 / 安全", "实时计算、CAN FD / 车载以太网、ASIL 分解、在线诊断"],
+            ["执行器", "力/转矩 / 响应 / 寿命", "满足制动、转向、驱动、悬架、换挡执行响应与耐久要求"],
+            ["电源与保护", "冗余 / 切换 / 监控", "关键路径备份、快速切换、故障上报与安全状态"]
+          ]
+        },
+        requirements: [
+          { title: "传感器模块", text: "踏板、转角、高度、压力、扭矩和挡位等信号需满足量程、精度、采样率与冗余要求。" },
+          { title: "控制器模块", text: "制动、转向、悬架和换挡控制单元需具备实时计算、通信、诊断和安全监控能力。" },
+          { title: "执行电机模块", text: "制动、转向、驱动与换挡执行机构需满足力/转矩、响应速度、寿命和热约束。" },
+          { title: "冗余保护模块", text: "电源、通信和控制器等关键路径提供备份，实现失效检测和安全状态切换。" }
+        ],
+        moduleTable: {
+          headers: ["子系统", "模块"],
+          rows: [
+            ["线控制动", "EHB/EMB 执行模块、制动踏板传感模块、制动 ECU、压力传感模块、冗余保护模块"],
+            ["线控转向", "路感模拟模块、转向执行电机模块、转向控制器、转角传感器模块"],
+            ["线控悬架", "高度传感器、CDC 阻尼调节模块、空气弹簧模块、悬架控制器"],
+            ["线控驱动", "扭矩采集模块、电机驱动控制模块"],
+            ["线控换挡", "换挡传感器、换挡执行电机模块、换挡控制板"]
+          ]
+        },
+        moduleGroups: [
+          {
+            subsystem: "线控制动 BBW",
+            modules: [
+              { name: "EHB/EMB 执行模块", function: "将制动控制指令转化为轮端制动力矩", input: "制动控制指令、电源", output: "制动力矩、执行状态", requirement: "响应 < 100 ms；冗余执行；ASIL D；耐久与热保护" },
+              { name: "制动踏板传感模块", function: "识别驾驶员制动意图", input: "踏板位移、踏板力", output: "双通道制动请求", requirement: "双冗余；信号自检；失效可检测" },
+              { name: "制动 ECU", function: "制动力分配、ABS/ESC/AEB、回馈协调", input: "车辆状态、轮速、压力", output: "执行器控制指令", requirement: "实时控制；ASIL D；CAN FD 通信" },
+              { name: "压力传感模块", function: "监测主缸/轮缸或 EMB 夹紧力", input: "液压压力或夹紧力", output: "数字压力信号", requirement: "精度高；双通道；故障诊断" },
+              { name: "冗余保护模块", function: "电源、通信、控制器备份与切换", input: "故障状态、备份信号", output: "冗余路径切换", requirement: "故障运行；切换时间短；状态上报" }
+            ]
+          },
+          {
+            subsystem: "线控转向 SbW",
+            modules: [
+              { name: "路感模拟模块", function: "生成转向力矩、阻尼和回正反馈", input: "车速、车轮转角、驾驶模式", output: "方向盘反馈力矩", requirement: "手感可调；稳定性好；失效安全" },
+              { name: "转向执行电机模块", function: "驱动转向齿条或转向执行机构", input: "位置/力矩指令、电源", output: "前轮转角、执行状态", requirement: "响应 < 50 ms；精度高；热保护" },
+              { name: "转向控制器", function: "闭环位置/力控制与故障处理", input: "手力、方向盘转角、车轮转角", output: "执行电机指令", requirement: "双冗余；ASIL D；同步与诊断" },
+              { name: "转角传感器模块", function: "测量方向盘和前轮转角", input: "机械转角", output: "双通道数字转角", requirement: "高分辨率；双冗余；失效检测" }
+            ]
+          },
+          {
+            subsystem: "线控悬架",
+            modules: [
+              { name: "高度传感器", function: "测量车身高度或悬架行程", input: "车身/悬架位移", output: "高度数字信号", requirement: "精度高；冗余；防水防尘" },
+              { name: "CDC 阻尼调节模块", function: "调节减振器阻尼电流", input: "阻尼目标、电源", output: "阻尼力", requirement: "响应快；连续可调；耐久" },
+              { name: "空气弹簧模块", function: "承载车身并调节高度", input: "气压控制、载荷", output: "车身高度与刚度", requirement: "泄漏检测；压力管理；失效保护" },
+              { name: "悬架控制器", function: "自适应悬架控制与传感器融合", input: "高度、加速度、轮速、车辆状态", output: "阻尼/空气弹簧控制", requirement: "实时控制；诊断；OTA 升级" }
+            ]
+          },
+          {
+            subsystem: "线控驱动 DBW",
+            modules: [
+              { name: "扭矩采集模块", function: "测量或估算驱动转矩和转速", input: "电机电流、旋变信号", output: "转矩、转速、温度", requirement: "精度高；采样快；冗余/安全监测" },
+              { name: "电机驱动控制模块", function: "执行转矩矢量、牵引和回收控制", input: "转矩请求、车辆状态", output: "逆变器 PWM 指令", requirement: "响应 < 50 ms；过流/过温保护；功能安全" }
+            ]
+          },
+          {
+            subsystem: "线控换挡 ShBW",
+            modules: [
+              { name: "换挡传感器", function: "识别当前挡位状态", input: "机械挡位位置", output: "双通道挡位信号", requirement: "双冗余；状态一致；失效检测" },
+              { name: "换挡执行电机模块", function: "驱动换挡机构完成挡位切换", input: "挡位指令、电源", output: "挡位位置、执行状态", requirement: "响应 < 100 ms；互锁；失效安全" },
+              { name: "换挡控制板", function: "换挡逻辑、互锁、驻车与诊断", input: "挡位请求、车速、制动状态", output: "执行电机控制、状态反馈", requirement: "多条件互锁；ASIL 分解；OTA 与诊断" }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const pipeline = document.getElementById("pipeline");
+    const levelList = document.getElementById("levelList");
+    const detail = document.getElementById("detail");
+    const chain = document.getElementById("chain");
+    let activeId = "system";
+    let activeTab = "overview";
+
+    function renderChain() {
+      chain.innerHTML = levels.map((level, index) => `
+        ${index > 0 ? '<li class="arrow">→</li>' : ""}
+        <li class="${level.id === activeId ? "current" : ""}">${level.title}</li>
+      `).join("");
+    }
+
+    function renderPipeline() {
+      pipeline.innerHTML = levels.map(level => `
+        <button class="node ${level.id === activeId ? "active" : ""}" style="--node-color: ${level.color};" data-level="${level.id}" aria-pressed="${level.id === activeId}">
+          <span class="node-index">${level.index}</span>
+          <h2>${level.title}</h2>
+          <span>${level.en}</span>
+        </button>
+      `).join("");
+    }
+
+    function renderLevelList() {
+      levelList.innerHTML = levels.map(level => `
+        <li>
+          <button class="level-button ${level.id === activeId ? "active" : ""}" style="--node-color: ${level.color};" data-level="${level.id}" aria-pressed="${level.id === activeId}">
+            <span class="level-dot"></span>
+            <span class="level-copy">
+              <strong>${level.index} · ${level.title}</strong>
+              <small>${level.short}</small>
+            </span>
+          </button>
+        </li>
+      `).join("");
+    }
+
+    function renderDetail(level) {
+      detail.style.setProperty("--node-color", level.color);
+
+      const overviewHtml = `
+        <p class="summary">${level.summary}</p>
+        ${level.scope
+        ? `
+          <div class="section-label">层级内涵与边界</div>
+          <ul class="overview-facts">
+            ${level.scope.map(item => {
+              const separator = item.indexOf("：");
+              const title = separator >= 0 ? item.slice(0, separator) : "";
+              const text = separator >= 0 ? item.slice(separator + 1) : item;
+              return `
+                <li class="fact-card">
+                  ${title ? `<strong>${title}</strong>` : ""}
+                  <span>${text}</span>
+                </li>
+              `;
+            }).join("")}
+          </ul>
+        `
+        : ""}
+      `;
+
+      const groups = level.requirementGroups && level.requirementGroups.length
+        ? level.requirementGroups
+        : [{ name: "系统需求", items: level.requirements || [] }];
+
+      const researchHtml = level.researchPoints
+        ? `
+          <div class="section-label">分析要点</div>
+          <ul class="research-points">
+            ${level.researchPoints.map((point, index) => `
+              <li class="research-point" data-index="${String(index + 1).padStart(2, "0")}">
+                <h3>${point.title}</h3>
+                <p>${point.text}</p>
+              </li>
+            `).join("")}
+          </ul>
+        `
+        : "";
+
+      const verificationHtml = level.verification
+        ? `
+          <div class="section-label">验证策略</div>
+          <table class="verification-table">
+            <thead>
+              <tr>${level.verification.headers.map(header => `<th>${header}</th>`).join("")}</tr>
+            </thead>
+            <tbody>
+              ${level.verification.rows.map(row => `
+                <tr>
+                  <td><strong>${row[0]}</strong></td>
+                  <td>${row[1]}</td>
+                  <td>${row[2]}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `
+        : "";
+
+      const requirementsHtml = groups.map((group, groupIndex) => `
+        <details class="requirement-group" ${groupIndex === 0 ? "open" : ""}>
+          <summary>
+            ${group.name}
+            <span class="tab-count">${group.items.length}</span>
+          </summary>
+          <div class="requirement-group-body">
+            <ul class="requirement-grid ${group.items.length === 1 ? "single" : ""}">
+              ${group.items.map((item, itemIndex) => `
+                <li class="requirement">
+                  <h3><span class="req-id">${level.index}.${String(groupIndex + 1).padStart(2, "0")}.${String(itemIndex + 1).padStart(2, "0")}</span>${item.title}</h3>
+                  <p>${item.text}</p>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        </details>
+      `).join("");
+
+      const metricsHtml = level.metrics
+        ? `
+          <div class="section-label">关键指标</div>
+          <table class="metrics-table">
+            <thead>
+              <tr>${level.metrics.headers.map(header => `<th>${header}</th>`).join("")}</tr>
+            </thead>
+            <tbody>
+              ${level.metrics.rows.map(row => `
+                <tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `
+        : "";
+
+      const subsystemHtml = level.subsystemDetails
+        ? `
+          <div class="section-label">五个子系统详细需求</div>
+          <div class="subsystem-detail">
+            ${level.subsystemDetails.map((item, index) => `
+              <details class="subsystem-card" ${index === 0 ? "open" : ""}>
+                <summary class="subsystem-card-header">
+                  <div>
+                    <h3>${item.name}</h3>
+                    <p>${item.en} · ${item.description}</p>
+                  </div>
+                  <span class="subsystem-badge">${item.badge}</span>
+                </summary>
+                <div class="subsystem-card-body">
+                  <div>
+                    <h4>核心模块</h4>
+                    <ul class="module-tags">
+                      ${item.modules.map(module => `<li>${module}</li>`).join("")}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4>关键需求</h4>
+                    <ul>
+                      ${item.requirements.map(requirement => `<li>${requirement}</li>`).join("")}
+                    </ul>
+                  </div>
+                </div>
+              </details>
+            `).join("")}
+          </div>
+        `
+        : "";
+
+      const moduleHtml = level.moduleGroups
+        ? `
+          <div class="section-label">模块详细需求</div>
+          ${level.moduleGroups.map((group, index) => `
+            <details class="module-group" ${index === 0 ? "open" : ""}>
+              <summary class="module-group-title">
+                ${group.subsystem}
+                <span class="tab-count">${group.modules.length}</span>
+              </summary>
+              <table class="module-detail-table">
+                <thead>
+                  <tr>
+                    <th>模块</th>
+                    <th>核心功能</th>
+                    <th>关键输入</th>
+                    <th>关键输出</th>
+                    <th>关键要求</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${group.modules.map(module => `
+                    <tr>
+                      <td><strong>${module.name}</strong></td>
+                      <td>${module.function}</td>
+                      <td>${module.input}</td>
+                      <td>${module.output}</td>
+                      <td>${module.requirement}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </details>
+          `).join("")}
+        `
+        : "";
+
+      const sections = [
+        {
+          key: "overview",
+          label: "概览",
+          count: level.scope ? level.scope.length : 1,
+          content: overviewHtml
+        },
+        {
+          key: "analysis",
+          label: "分析要点",
+          count: level.researchPoints ? level.researchPoints.length : 0,
+          content: researchHtml
+        },
+        {
+          key: "requirements",
+          label: "需求清单",
+          count: groups.reduce((sum, group) => sum + group.items.length, 0),
+          content: requirementsHtml
+        }
+      ];
+
+      if (level.metrics) {
+        sections.push({
+          key: "metrics",
+          label: "关键指标",
+          count: level.metrics.rows.length,
+          content: metricsHtml
+        });
+      }
+
+      if (level.verification) {
+        sections.push({
+          key: "verification",
+          label: "验证策略",
+          count: level.verification.rows.length,
+          content: verificationHtml
+        });
+      }
+
+      if (level.subsystemDetails) {
+        sections.push({
+          key: "subsystems",
+          label: "子系统",
+          count: level.subsystemDetails.length,
+          content: subsystemHtml
+        });
+      }
+
+      if (level.moduleGroups) {
+        sections.push({
+          key: "modules",
+          label: "模块",
+          count: level.moduleGroups.reduce((sum, group) => sum + group.modules.length, 0),
+          content: moduleHtml
+        });
+      }
+
+      if (!sections.some(section => section.key === activeTab)) {
+        activeTab = "overview";
+      }
+
+      const currentSection = sections.find(section => section.key === activeTab) || sections[0];
+      const currentIndex = levels.findIndex(item => item.id === level.id);
+      const previousLevel = levels[(currentIndex - 1 + levels.length) % levels.length];
+      const nextLevel = levels[(currentIndex + 1) % levels.length];
+
+      const tabsHtml = `
+        <nav class="tabs" aria-label="层级内容导航">
+          ${sections.map(section => `
+            <button class="tab-button ${section.key === currentSection.key ? "active" : ""}" data-tab="${section.key}" aria-selected="${section.key === currentSection.key}">
+              ${section.label}
+              <span class="tab-count">${section.count}</span>
+            </button>
+          `).join("")}
+        </nav>
+      `;
+
+      detail.innerHTML = `
+        <div class="detail-header">
+          <div class="detail-title">
+            <div class="detail-mark">${level.index}</div>
+            <div>
+              <h2>${level.title}</h2>
+              <p>${level.en} · ${level.short}</p>
+            </div>
+          </div>
+          <div class="position-tag">${level.position}</div>
+        </div>
+        ${tabsHtml}
+        <div class="tab-panel">${currentSection.content}</div>
+        <div class="level-pager">
+          <button data-level="${previousLevel.id}" aria-label="上一层级：${previousLevel.title}">← ${previousLevel.title}</button>
+          <span class="pager-meta">${level.index} / ${String(levels.length).padStart(2, "0")}</span>
+          <button data-level="${nextLevel.id}" aria-label="下一层级：${nextLevel.title}">${nextLevel.title} →</button>
+        </div>
+      `;
+
+      document.querySelectorAll(".node").forEach(node => {
+        const isActive = node.dataset.level === level.id;
+        node.classList.toggle("active", isActive);
+        node.setAttribute("aria-pressed", String(isActive));
+      });
+
+      document.querySelectorAll(".level-button").forEach(button => {
+        const isActive = button.dataset.level === level.id;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+
+      renderChain();
+    }
+
+    document.addEventListener("click", event => {
+      const tabButton = event.target.closest("[data-tab]");
+      if (tabButton) {
+        activeTab = tabButton.dataset.tab;
+        const level = levels.find(item => item.id === activeId);
+        if (level) renderDetail(level);
+        return;
+      }
+
+      const button = event.target.closest("[data-level]");
+      if (!button) return;
+      activeId = button.dataset.level;
+      const level = levels.find(item => item.id === activeId);
+      if (level) renderDetail(level);
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.target.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+      const currentIndex = levels.findIndex(item => item.id === activeId);
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextLevel = levels[(currentIndex + direction + levels.length) % levels.length];
+      activeId = nextLevel.id;
+      renderDetail(nextLevel);
+    });
+
+    renderChain();
+    renderPipeline();
+    renderLevelList();
+    renderDetail(levels.find(item => item.id === activeId));
+  </script>
+</body>
+</html>
