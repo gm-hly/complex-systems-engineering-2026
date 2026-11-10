@@ -556,6 +556,26 @@
       min-height: 560px;
     }
 
+    .level-button,
+    .fact-card,
+    .requirement,
+    .research-point,
+    .subsystem-card,
+    .module-group {
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .level-button:hover,
+    .fact-card:hover,
+    .requirement:hover,
+    .research-point:hover,
+    .subsystem-card:hover,
+    .module-group:hover {
+      transform: translateY(-3px);
+      border-color: var(--node-color);
+      box-shadow: 0 12px 24px rgba(28, 43, 60, 0.10);
+    }
+
     .detail-header {
       display: flex;
       align-items: flex-start;
@@ -1015,6 +1035,16 @@
 
     .metrics-table td {
       color: var(--muted);
+    }
+
+    .metrics-table tbody tr,
+    .verification-table tbody tr {
+      transition: background 160ms ease;
+    }
+
+    .metrics-table tbody tr:hover,
+    .verification-table tbody tr:hover {
+      background: color-mix(in srgb, var(--node-color) 5%, white);
     }
 
     .metrics-table strong {
