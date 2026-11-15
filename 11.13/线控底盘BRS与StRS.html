@@ -1,1 +1,2562 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>面向高阶智能驾驶（L3/L4/L5）线控底盘系统 BRS 与 StRS</title>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --surface: #ffffff;
+      --surface-soft: #f8fafb;
+      --ink: #222930;
+      --muted: #434a53;
+      --line: #dfe4e8;
+      --line-strong: #c3cdd4;
+      --navy: #1d4f70;
+      --navy-deep: #123650;
+      --steel: #2f6f9f;
+      --steel-soft: #e9f1f6;
+      --teal: #1f7a7a;
+      --teal-soft: #e5f2f1;
+      --coral: #a64a3b;
+      --coral-soft: #f6e9e6;
+      --amber: #9a6b1f;
+      --amber-soft: #f7efdd;
+      --green: #39764d;
+      --green-soft: #e5f0e8;
+      --shadow: 0 14px 34px rgba(28, 43, 60, 0.10);
+      --shadow-soft: 0 5px 18px rgba(28, 43, 60, 0.06);
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 84px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      height: 68px;
+      padding: 0 max(28px, 3vw);
+      color: var(--navy);
+      background: rgba(245, 247, 248, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      color: #ffffff;
+      background: var(--coral);
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .topnav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .topnav-links a {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 160ms ease;
+    }
+
+    .topnav-links a:hover,
+    .topnav-links a:focus-visible {
+      color: var(--coral);
+      outline: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 268px minmax(0, 1fr);
+      gap: 30px;
+      width: min(1500px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 108px 0 72px;
+    }
+
+    .toc {
+      align-self: start;
+      position: sticky;
+      top: 92px;
+      max-height: calc(100vh - 112px);
+      overflow-y: auto;
+      padding: 16px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      scrollbar-width: thin;
+    }
+
+    .toc-label {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .toc-group {
+      display: grid;
+      gap: 3px;
+      margin-bottom: 12px;
+    }
+
+    .toc-group .toc-heading {
+      margin: 9px 0 3px;
+      padding: 6px 9px;
+      color: var(--navy);
+      background: transparent;
+      border-left-color: transparent;
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .toc-group .toc-heading:hover,
+    .toc-group .toc-heading:focus-visible {
+      background: var(--surface-soft);
+      border-left-color: var(--coral);
+    }
+
+    .toc-group a {
+      display: block;
+      padding: 6px 9px;
+      color: var(--muted);
+      border-left: 4px solid transparent;
+      border-radius: 0 5px 5px 0;
+      font-size: 12px;
+      line-height: 1.45;
+      transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .toc-group a:hover,
+    .toc-group a:focus-visible {
+      color: var(--navy);
+      background: var(--surface-soft);
+      border-left-color: var(--coral);
+      outline: none;
+    }
+
+    .toc-group a.active {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-left-color: var(--coral);
+      font-weight: 800;
+    }
+
+    .content {
+      min-width: 0;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 8px 0 30px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .masthead-copy {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 13px;
+      color: var(--coral);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 22px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: clamp(34px, 4.8vw, 54px);
+      line-height: 1.12;
+      font-weight: 800;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--coral);
+    }
+
+    .masthead p {
+      margin: 16px 0 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.72;
+    }
+
+    .cover-actions {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+    }
+
+    .meta {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      color: var(--navy);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .doc-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .doc-links a {
+      padding: 8px 11px;
+      color: var(--navy);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .doc-links a:hover,
+    .doc-links a:focus-visible {
+      color: var(--coral);
+      border-color: var(--coral);
+      box-shadow: 0 5px 14px rgba(28, 43, 60, 0.08);
+      outline: none;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stat strong {
+      color: var(--navy);
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 0;
+    }
+
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .meta-tag strong {
+      color: var(--navy);
+    }
+
+    .band {
+      padding: 42px 0 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .band:first-of-type {
+      border-top: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 7px;
+      color: var(--coral);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .section-kicker::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: clamp(27px, 3vw, 38px);
+      line-height: 1.18;
+      font-weight: 800;
+      padding-left: 14px;
+      border-left: 5px solid var(--coral);
+    }
+
+    .section-head p {
+      max-width: 780px;
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .section-code {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 6px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .subsection {
+      margin: 30px 0 0;
+    }
+
+    .subsection:first-child {
+      margin-top: 0;
+    }
+
+    .subsection-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      background: var(--surface-soft);
+      border-left: 4px solid var(--steel);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .subsection-head::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      margin-left: 10px;
+      background: var(--line-strong);
+    }
+
+    .subsection-head .number {
+      flex: 0 0 auto;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .subsection-head h3 {
+      margin: 0;
+      color: var(--steel);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 17px;
+      line-height: 1.32;
+      font-weight: 800;
+    }
+
+    .subsection-head[data-level="1"] {
+      padding: 13px 14px;
+      background: var(--navy);
+      border-left: 5px solid var(--coral);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .subsection-head[data-level="1"] .number {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .subsection-head[data-level="1"] h3 {
+      color: #ffffff;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .subsection-head[data-level="1"]::after {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .subsection-head[data-level="2"] {
+      background: var(--surface-soft);
+      border-left-color: var(--steel);
+    }
+
+    .subsection-head[data-level="2"] h3 {
+      color: var(--steel);
+      font-size: 17px;
+    }
+
+    .subsection-head[data-level="3"] {
+      padding: 7px 10px;
+      background: var(--surface);
+      border-left: 3px solid var(--coral);
+    }
+
+    .subsection-head[data-level="3"] .number {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-color: #e7c2bc;
+    }
+
+    .subsection-head[data-level="3"] h3 {
+      color: var(--coral);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .subsection-head[data-level="3"]::after {
+      background: transparent;
+    }
+
+    .subsection p {
+      margin: 8px 0 0 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .subsection p strong {
+      color: var(--navy);
+    }
+
+    .subsection .callout,
+    .subsection .diagram-wrap,
+    .subsection .flow,
+    .subsection .grid-2,
+    .subsection .grid-3,
+    .subsection .req-list,
+    .subsection .table-wrap {
+      margin-left: 5px;
+    }
+
+    .lede {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .lede strong {
+      color: var(--navy);
+    }
+
+    .callout {
+      margin: 16px 0 0;
+      padding: 15px 17px;
+      color: var(--ink);
+      background: var(--surface-soft);
+      border-left: 3px solid var(--steel);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .callout.warn {
+      background: var(--amber-soft);
+      border-left-color: var(--amber);
+    }
+
+    .callout.safe {
+      background: var(--green-soft);
+      border-left-color: var(--green);
+    }
+
+    .callout strong {
+      color: var(--navy);
+    }
+
+    .diagram-wrap {
+      margin-top: 16px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .diagram-wrap svg {
+      display: block;
+      width: 100%;
+      min-width: 720px;
+      height: auto;
+    }
+
+    .flow {
+      margin-top: 16px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .flow-inner {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(128px, 1fr));
+      gap: 10px;
+      min-width: 760px;
+      padding: 18px;
+    }
+
+    .flow-node {
+      position: relative;
+      min-height: 116px;
+      padding: 15px 13px;
+      color: var(--ink);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--steel);
+      border-radius: 6px;
+    }
+
+    .flow-node::after {
+      content: "›";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      z-index: 1;
+      color: var(--steel);
+      font-size: 22px;
+      font-weight: 800;
+      transform: translateY(-50%);
+    }
+
+    .flow-node:last-child::after {
+      content: "";
+    }
+
+    .flow-node strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .flow-node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .fact {
+      min-width: 0;
+      padding: 15px 16px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--steel);
+      border-radius: 6px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .fact strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .fact span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .req-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .req-item {
+      padding: 15px 16px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--steel);
+      border-radius: 6px;
+      box-shadow: var(--shadow-soft);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .fact,
+    .req-item {
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .fact:hover,
+    .req-item:hover {
+      transform: translateY(-3px);
+      border-color: var(--line-strong);
+      box-shadow: 0 12px 24px rgba(28, 43, 60, 0.10);
+    }
+
+    .req-item.warn {
+      border-left-color: var(--amber);
+    }
+
+    .req-item.safe {
+      border-left-color: var(--green);
+    }
+
+    .req-item.danger {
+      border-left-color: var(--coral);
+    }
+
+    .req-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .req-id {
+      flex: 0 0 auto;
+      padding: 2px 5px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .req-item h4 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .req-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.58;
+    }
+
+    .req-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .req-meta span {
+      padding: 4px 7px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      margin-top: 14px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--navy);
+      background: var(--surface-soft);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      transition: background 160ms ease;
+    }
+
+    tbody tr:hover {
+      background: var(--steel-soft);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    td strong {
+      color: var(--navy);
+    }
+
+    .table-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .trace-cell {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.amber {
+      color: var(--amber);
+      background: var(--amber-soft);
+      border-color: #e5cf9f;
+    }
+
+    .pill.green {
+      color: var(--green);
+      background: var(--green-soft);
+      border-color: #bfdac7;
+    }
+
+    .pill.coral {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-color: #e7c2bc;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 54px;
+      padding: 22px 0 0;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1050px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        max-height: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        padding: 0;
+      }
+
+      .toc-label,
+      .toc-group {
+        display: contents;
+      }
+
+      .toc-group .toc-heading {
+        margin: 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+      }
+
+      .toc-group a {
+        flex: 0 0 auto;
+        padding: 6px 9px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 0;
+        border-radius: 6px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        width: min(100% - 24px, 1500px);
+        padding-top: 88px;
+      }
+
+      .topnav-links {
+        justify-content: flex-start;
+      }
+
+      .masthead {
+        display: block;
+      }
+
+      .cover-actions {
+        align-items: flex-start;
+        margin-top: 18px;
+      }
+
+      .doc-links {
+        justify-content: flex-start;
+      }
+
+      .section-head {
+        flex-direction: column;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        min-width: 130px;
+      }
+
+      .table-wrap {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="返回顶部">
+      <span class="brand-mark">CS</span>
+      <span>Complex Systems Engineering · 11.13</span>
+    </a>
+    <nav class="topnav-links" aria-label="主导航">
+      <a href="#definition">系统定义</a>
+      <a href="#brs">BRS</a>
+      <a href="#conops">ConOps</a>
+      <a href="#strs">StRS</a>
+      <a href="#opscon">OpsCon</a>
+      <a href="#stakeholders">相关方</a>
+      <a href="#traceability">需求追溯</a>
+      <a href="./问题.docx" download>问题文档</a>
+      <a href="./我的答案.docx" download>我的答案</a>
+    </nav>
+  </header>
+
+  <main class="layout" id="top">
+    <aside class="toc" aria-label="文档目录">
+      <div class="toc-label">Document Outline</div>
+      <div class="toc-group">
+        <a class="toc-heading" href="#definition">01 · 总览</a>
+        <a href="#definition">系统定义与边界</a>
+        <a href="#reading">文档阅读说明</a>
+      </div>
+      <div class="toc-group">
+        <a class="toc-heading" href="#brs">02 · BRS</a>
+        <a href="#brs-intro">简介与主要相关方</a>
+        <a href="#brs-management">业务管理需求</a>
+        <a href="#brs-operation">业务运行需求</a>
+        <a href="#conops">初步运行概念 ConOps</a>
+        <a href="#brs-lifecycle">其他初步生存周期概念</a>
+        <a href="#brs-constraints">项目约束与附录</a>
+      </div>
+      <div class="toc-group">
+        <a class="toc-heading" href="#strs">03 · StRS</a>
+        <a href="#strs-intro">简介</a>
+        <a href="#stakeholders">相关方列表与需求</a>
+        <a href="#strs-management">业务管理需求</a>
+        <a href="#strs-operation">系统运行需求</a>
+        <a href="#user-needs">用户需求</a>
+        <a href="#opscon">运行概念 OpsCon</a>
+        <a href="#lifecycle">详细生存周期概念</a>
+      </div>
+      <div class="toc-group">
+        <a class="toc-heading" href="#traceability">04 · 追溯</a>
+        <a href="#traceability">需求追溯矩阵</a>
+        <a href="#conclusion">结论</a>
+        <a href="#appendix">附录</a>
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="masthead">
+        <div class="masthead-copy">
+          <div class="eyebrow">ISO/IEC/IEEE 29148:2018 · Table 4-1 / 4-5</div>
+          <h1>面向高阶智能驾驶（L3/L4/L5）线控底盘系统<br>业务需求与相关方需求规格说明</h1>
+          <p>本文档以“线控底盘系统”为系统对象，按照 ISO/IEC/IEEE 29148:2018 表 4-1 的 BRS 框架和表 4-5 的 StRS 框架，完整输出业务需求规格说明与相关方需求规格说明，并重点展开业务/任务需求、ConOps、OpsCon、相关方列表与相关方需求。</p>
+          <div class="stats" aria-label="内容概览">
+            <span class="stat"><strong>14</strong> 个信息表</span>
+            <span class="stat"><strong>7</strong> 类相关方</span>
+            <span class="stat"><strong>10</strong> 条核心相关方需求</span>
+            <span class="stat"><strong>L3/L4/L5</strong> 自动驾驶等级</span>
+          </div>
+        </div>
+        <div class="cover-actions">
+          <span class="meta">11.13 · BRS + StRS</span>
+          <div class="doc-links" aria-label="参考文档">
+            <a href="./问题.docx" download>问题文档</a>
+            <a href="./我的答案.docx" download>我的答案</a>
+            <a href="./表4-1.docx" download>表 4-1</a>
+            <a href="./表4-5.docx" download>表 4-5</a>
+          </div>
+        </div>
+      </header>
+
+      <section class="band" id="definition">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">01 · System Definition</div>
+            <h2>系统定义与边界</h2>
+            <p>系统对象不是单个执行器，而是承接高阶智驾“运动期望”并转化为整车安全运动响应的跨域执行平台。</p>
+          </div>
+          <span class="section-code">SoI · X-by-Wire Chassis</span>
+        </div>
+
+        <p class="lede">线控底盘（BBW / SBW / DBW / 线控悬架 / 底盘域控）是面向 L3/L4/L5 高阶智能驾驶的执行底座。其核心特征是：<strong>无机械硬连接、全电子指令、多重冗余、毫秒级协同、功能安全 ASIL-D</strong>，实现从智驾域“运动期望”到车辆运动的执行闭环。</p>
+
+        <div class="diagram-wrap" aria-label="线控底盘系统上下文图">
+          <svg viewBox="0 0 1100 500" role="img" aria-label="线控底盘系统上下文图">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L9,3 L0,6 Z" fill="#2f6f9f"></path>
+              </marker>
+              <marker id="arrowOut" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L9,3 L0,6 Z" fill="#a64a3b"></path>
+              </marker>
+            </defs>
+            <rect x="18" y="18" width="1064" height="464" rx="12" fill="#ffffff" stroke="#dfe4e8"></rect>
+            <text x="42" y="48" fill="#434a53" font-size="12" font-weight="700">系统上下文</text>
+
+            <rect x="46" y="76" width="204" height="128" rx="8" fill="#e9f1f6" stroke="#c9dce6"></rect>
+            <text x="66" y="108" fill="#1d4f70" font-size="15" font-weight="800">高阶智驾域 ADS</text>
+            <text x="66" y="132" fill="#434a53" font-size="12">感知 / 预测 / 规划</text>
+            <text x="66" y="154" fill="#434a53" font-size="12">运动目标指令</text>
+            <text x="66" y="178" fill="#434a53" font-size="12">横纵向耦合请求</text>
+
+            <rect x="804" y="76" width="236" height="128" rx="8" fill="#e3f2ef" stroke="#bdd9d3"></rect>
+            <text x="824" y="108" fill="#1d4f70" font-size="15" font-weight="800">整车动力学</text>
+            <text x="824" y="132" fill="#434a53" font-size="12">轮胎力 / 侧偏 / 载荷</text>
+            <text x="824" y="154" fill="#434a53" font-size="12">横摆 / 纵向 / 垂向响应</text>
+            <text x="824" y="178" fill="#434a53" font-size="12">道路与风阻扰动</text>
+
+            <rect x="360" y="176" width="380" height="250" rx="12" fill="#f8fafb" stroke="#2f6f9f" stroke-width="2"></rect>
+            <text x="386" y="208" fill="#1d4f70" font-size="16" font-weight="800">线控底盘系统（SoI）</text>
+            <text x="386" y="230" fill="#2f6f9f" font-size="12" font-weight="700">Chassis Domain Controller + By-Wire Actuators</text>
+
+            <rect x="386" y="250" width="154" height="62" rx="6" fill="#e9f1f6" stroke="#c9dce6"></rect>
+            <text x="404" y="274" fill="#1d4f70" font-size="13" font-weight="800">底盘域控制器</text>
+            <text x="404" y="295" fill="#434a53" font-size="11">运动协调 / 仲裁 / 诊断</text>
+
+            <rect x="558" y="250" width="154" height="62" rx="6" fill="#e9f1f6" stroke="#c9dce6"></rect>
+            <text x="576" y="274" fill="#1d4f70" font-size="13" font-weight="800">线控制动 BBW</text>
+            <text x="576" y="295" fill="#434a53" font-size="11">EHB / EMB / 冗余制动</text>
+
+            <rect x="386" y="326" width="154" height="62" rx="6" fill="#e9f1f6" stroke="#c9dce6"></rect>
+            <text x="404" y="350" fill="#1d4f70" font-size="13" font-weight="800">线控转向 SBW</text>
+            <text x="404" y="371" fill="#434a53" font-size="11">路感模拟 / 转角控制</text>
+
+            <rect x="558" y="326" width="154" height="62" rx="6" fill="#e9f1f6" stroke="#c9dce6"></rect>
+            <text x="576" y="350" fill="#1d4f70" font-size="13" font-weight="800">驱动与悬架</text>
+            <text x="576" y="371" fill="#434a53" font-size="11">DBW / 扭矩 / CDC 悬架</text>
+
+            <rect x="46" y="356" width="236" height="100" rx="8" fill="#f7efdc" stroke="#e5cf9f"></rect>
+            <text x="66" y="384" fill="#1d4f70" font-size="14" font-weight="800">驾驶员 / 远程运营</text>
+            <text x="66" y="406" fill="#434a53" font-size="12">接管、监控、远程指令</text>
+            <text x="66" y="428" fill="#434a53" font-size="12">OEM / Tier1 / 法规机构</text>
+
+            <line x1="250" y1="140" x2="360" y2="205" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></line>
+            <text x="266" y="166" fill="#2f6f9f" font-size="11" font-weight="700">运动目标</text>
+
+            <line x1="360" y1="300" x2="250" y2="340" stroke="#a64a3b" stroke-width="2" marker-end="url(#arrowOut)"></line>
+            <text x="250" y="332" fill="#a64a3b" font-size="11" font-weight="700">状态 / 故障 / 接管请求</text>
+
+            <line x1="740" y1="300" x2="804" y2="168" stroke="#a64a3b" stroke-width="2" marker-end="url(#arrowOut)"></line>
+            <text x="746" y="232" fill="#a64a3b" font-size="11" font-weight="700">执行响应</text>
+
+            <line x1="804" y1="168" x2="740" y2="300" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></line>
+            <text x="744" y="196" fill="#2f6f9f" font-size="11" font-weight="700">车辆反馈</text>
+          </svg>
+        </div>
+
+        <div class="grid-3">
+          <div class="fact">
+            <strong>系统范围</strong>
+            <span>底盘域控制器、线控制动、线控转向、线控驱动、线控悬架、冗余电源与冗余通信。</span>
+          </div>
+          <div class="fact">
+            <strong>系统边界之外</strong>
+            <span>感知传感器、高精地图、规划算法、座舱 HMI、云端训练平台，但接口被纳入约束。</span>
+          </div>
+          <div class="fact">
+            <strong>核心目标</strong>
+            <span>以 ASIL-D 安全等级和毫秒级闭环，保证高阶智驾运动请求在正常、降级和失效状态均可控。</span>
+          </div>
+        </div>
+
+        <div class="flow" aria-label="端到端执行链路">
+          <div class="flow-inner">
+            <div class="flow-node">
+              <strong>1. 运动期望</strong>
+              <span>ADS 输出目标加速度、横摆、转向角、悬架高度。</span>
+            </div>
+            <div class="flow-node">
+              <strong>2. 域控仲裁</strong>
+              <span>底盘域控校验、仲裁、分配执行子任务。</span>
+            </div>
+            <div class="flow-node">
+              <strong>3. 执行器闭环</strong>
+              <span>BBW / SBW / DBW / 悬架完成高动态执行。</span>
+            </div>
+            <div class="flow-node">
+              <strong>4. 整车响应</strong>
+              <span>轮胎力、车辆姿态和路径跟踪形成运动结果。</span>
+            </div>
+            <div class="flow-node">
+              <strong>5. 状态反馈</strong>
+              <span>回传状态、故障、降级与可接管性。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="reading">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Document Notes</div>
+            <h2>文档阅读说明</h2>
+            <p>需求编号用于支持从相关方到系统运行需求的纵向追溯，不是最终软硬件实现编号。</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>编号前缀</th>
+                <th>含义</th>
+                <th>用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="pill">BR</span></td>
+                <td>Business Requirement，业务需求</td>
+                <td>描述业务目标、范围、经营和质量要求。</td>
+              </tr>
+              <tr>
+                <td><span class="pill">BP</span></td>
+                <td>Business Process，业务过程</td>
+                <td>描述业务活动、策略规则和运行约束。</td>
+              </tr>
+              <tr>
+                <td><span class="pill">SC</span></td>
+                <td>ConOps Scenario，初步运行场景</td>
+                <td>描述 BRS 中提案系统的典型运行场景。</td>
+              </tr>
+              <tr>
+                <td><span class="pill amber">SH</span></td>
+                <td>Stakeholder，相关方</td>
+                <td>用于相关方分类、权责和影响分析。</td>
+              </tr>
+              <tr>
+                <td><span class="pill amber">SR</span></td>
+                <td>Stakeholder Requirement，相关方需求</td>
+                <td>描述相关方对系统的期望、约束和验收条件。</td>
+              </tr>
+              <tr>
+                <td><span class="pill green">UR</span></td>
+                <td>User Requirement，用户需求</td>
+                <td>描述驾驶员、远程运营、维护等用户的使用需求。</td>
+              </tr>
+              <tr>
+                <td><span class="pill green">SY</span></td>
+                <td>System Mode / Process，系统模式与过程</td>
+                <td>描述系统运行状态、过程和模式转换。</td>
+              </tr>
+              <tr>
+                <td><span class="pill coral">OS</span></td>
+                <td>OpsCon Scenario，运行场景</td>
+                <td>描述 StRS 中详细运行场景与操作流程。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band" id="brs">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">02 · Business Requirements Specification</div>
+            <h2>BRS：业务需求规格说明</h2>
+            <p>对应 ISO/IEC/IEEE 29148:2018 表 4-1 的完整轮廓，从组织经营层说明“为什么要建设该系统、期望取得什么业务结果”。</p>
+          </div>
+          <span class="section-code">BRS · Table 4-1</span>
+        </div>
+
+        <div class="subsection" id="brs-intro">
+          <div class="subsection-head">
+            <span class="number">1</span>
+            <h3>简介</h3>
+          </div>
+          <div class="subsection-head">
+            <span class="number">1.1</span>
+            <h3>业务目的</h3>
+          </div>
+          <p>面向 L3/L4/L5 高阶智能驾驶的规模化落地，传统机械或液压底盘在执行带宽、跨域协同、失效安全和数据闭环方面已不能满足要求。主机厂需要建立一套可复用、可升级、可认证的线控底盘平台，使智驾域输出的运动期望能够被安全、精确、快速地转化为整车运动，同时降低多车型适配和供应商联调成本。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.2</span>
+            <h3>业务范围</h3>
+          </div>
+          <p>业务领域为智能网联汽车底盘运动控制，覆盖整车研发、供应链管理、生产下线、OTA 升级、售后诊断和运营维护。业务范围包括底盘域控制、线控制动、线控转向、线控驱动、线控悬架以及必要的冗余电源、冗余通信、功能安全和预期功能安全设计。</p>
+          <p>系统范围限定在“从 ADS 运动请求到执行器闭环响应”的运动执行域，不包含感知、地图、预测和规划算法。外部环境实体包括驾驶员、远程运营中心、OEM 平台、Tier1 供应商、法规检测机构和云端数据平台。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.3</span>
+            <h3>业务概况</h3>
+          </div>
+          <p>主机厂负责整车集成、系统需求定义和最终安全责任；底盘 Tier1 提供线控执行器与底层控制算法；高阶智驾方案商提供运动规划；Tier2 提供功能安全芯片、传感器和电机等底层器件；监管机构负责法规、准入和事故责任边界。终端用户和 Robotaxi 运营方决定商业化节奏与可用性要求。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.4</span>
+            <h3>定义</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>术语</th>
+                  <th>定义</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>L3 / L4 / L5</strong></td>
+                  <td>有条件自动驾驶 / 高度自动驾驶 / 完全自动驾驶。L3-L4 在运行设计域内承担动态驾驶任务，L5 面向全域完全自动驾驶，不依赖驾驶员作为备份。</td>
+                </tr>
+                <tr>
+                  <td><strong>BBW</strong></td>
+                  <td>Brake-by-Wire，线控制动，包括 EHB 电子液压制动与 EMB 电子机械制动。</td>
+                </tr>
+                <tr>
+                  <td><strong>SBW</strong></td>
+                  <td>Steer-by-Wire，线控转向，取消转向柱机械硬连接，由执行电机完成前轮转角控制。</td>
+                </tr>
+                <tr>
+                  <td><strong>DBW</strong></td>
+                  <td>Drive-by-Wire，线控驱动，对驱动扭矩、回收扭矩和轮端扭矩进行电子控制。</td>
+                </tr>
+                <tr>
+                  <td><strong>底盘域控制器</strong></td>
+                  <td>位于 ADS 与执行器之间的运动协调、控制仲裁、故障诊断和安全状态管理单元。</td>
+                </tr>
+                <tr>
+                  <td><strong>ConOps</strong></td>
+                  <td>Concept of Operations，从业务和用户视角说明系统总体运行方式。</td>
+                </tr>
+                <tr>
+                  <td><strong>OpsCon</strong></td>
+                  <td>Operational Concept，在 StRS 中更详细定义系统运行模式、操作流程和支持环境。</td>
+                </tr>
+                <tr>
+                  <td><strong>ASIL-D</strong></td>
+                  <td>ISO 26262 功能安全最高等级，本系统关键安全链路的目标等级。</td>
+                </tr>
+                <tr>
+                  <td><strong>SOTIF</strong></td>
+                  <td>ISO 21448 预期功能安全，处理非故障性功能不足导致的运行风险。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">1.5</span>
+            <h3>主要相关方</h3>
+          </div>
+          <p>主要相关方分为主机厂、底盘 Tier1、高阶智驾方案商、Tier2、监管检测机构、终端用户与运营方、其他服务方七类。其权责、诉求和博弈关系将在 StRS 第 1.5 节和相关方需求部分展开。</p>
+        </div>
+
+        <div class="subsection" id="brs-management">
+          <div class="subsection-head">
+            <span class="number">2</span>
+            <h3>参考文献</h3>
+          </div>
+          <div class="callout">
+            主要参考：ISO/IEC/IEEE 29148:2018；ISO 26262:2018；ISO 21448:2022；GB 17675-2025；GB 21670-2025；GB/T 34590；联合国 UN R157；GB/T 40429；GB/T 44721 等相关车辆安全、智能网联和线控底盘标准。
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">3</span>
+            <h3>业务管理需求</h3>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">3.1</span>
+            <h3>业务环境</h3>
+          </div>
+          <p>内部环境受制于整车电子电气架构从分布式向“中央计算 + 区域控制”演进，底盘域需要承接更多跨域融合功能。外部环境包括 L3/L4 法规逐步放开、L5 完全自动驾驶进入验证和示范阶段、Robotaxi 商业化推进、EMB 和 SBW 等无机械备份技术路线被标准认可，以及国产功能安全芯片和线控执行器供应链加速替代。</p>
+
+          <div class="subsection-head">
+            <span class="number">3.2</span>
+            <h3>使命、目的与目标</h3>
+          </div>
+          <div class="grid-3">
+            <div class="fact">
+              <strong>使命</strong>
+              <span>为高阶智能驾驶提供可信、可扩展、可维护的整车运动执行底座。</span>
+            </div>
+            <div class="fact">
+              <strong>业务目的</strong>
+              <span>缩短 L3/L4/L5 车型集成周期，降低跨供应商联调成本，形成数据闭环与差异化体验。</span>
+            </div>
+            <div class="fact">
+              <strong>关键结果</strong>
+              <span>安全等级、控制带宽、平台复用率、OTA 成功率和运营可用性达到定义目标。</span>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>业务目标</th>
+                  <th>衡量指标</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">BR-01</td>
+                  <td>建立 ASIL-D 线控底盘安全基线</td>
+                  <td>关键安全链路满足 ASIL-D 分解，无单点失效导致失控。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BR-02</td>
+                  <td>支撑 L3/L4/L5 高动态运动请求</td>
+                  <td>转向执行目标时延 ≤ 50 ms，制动目标时延 ≤ 100 ms，悬架与扭矩按场景分配。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BR-03</td>
+                  <td>提升跨车型平台复用率</td>
+                  <td>标准接口覆盖率 ≥ 85%，新车型适配以标定和配置为主。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BR-04</td>
+                  <td>建立底盘数据闭环</td>
+                  <td>关键状态、故障、降级和能耗数据可回传，支撑智驾算法和预测性维护迭代。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BR-05</td>
+                  <td>支持软件持续升级</td>
+                  <td>底盘域软件可通过 OTA 升级，升级过程满足回滚和网络安全要求。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">3.3</span>
+            <h3>业务模型</h3>
+          </div>
+          <p>主机厂可采用“自研底盘域控 + 外采执行器”或“Tier1 打包方案”两种模式。前者掌握运动协调算法与跨域控制权，硬件向供应商采购；后者降低开发投入，以标准化接口快速上车。数据服务、OTA 服务、Robotaxi 车队运维和功能订阅可形成持续收入。</p>
+          <div class="grid-2">
+            <div class="fact">
+              <strong>自研底盘域控路线</strong>
+              <span>ADS 输出运动目标，主机厂底盘域控统筹制动、转向、悬架和驱动，硬件由 Tier1/Tier2 供给。优势是控制权和迭代速度快，代价是集成验证投入高。</span>
+            </div>
+            <div class="fact">
+              <strong>Tier1 打包路线</strong>
+              <span>Tier1 提供黑盒或灰盒底盘方案，主机厂聚焦整车集成和场景标定。优势是快速上车，代价是底层接口开放度和差异化能力受限。</span>
+            </div>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">3.4</span>
+            <h3>信息环境</h3>
+          </div>
+          <p>信息环境采用“中央计算 + 区域控制 + 底盘域控制”的 SOA 服务化架构。底盘域通过确定性车载以太网、CAN-FD 和冗余通信总线与 ADS、车身、动力和云端交互。企业级数据平台统一管理故障码、运行工况、标定版本、软件版本和安全事件，支持多项目组合、长期架构演进和全局数据配置。</p>
+        </div>
+
+        <div class="subsection" id="brs-operation">
+          <div class="subsection-head">
+            <span class="number">4</span>
+            <h3>业务运行需求</h3>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">4.1</span>
+            <h3>业务过程</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>业务过程</th>
+                  <th>说明</th>
+                  <th>关键接口</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">BP-01</td>
+                  <td><strong>需求与法规捕获</strong></td>
+                  <td>将法规、市场、车型平台和安全目标转化为底盘需求基线。</td>
+                  <td>法规库、车型平台、安全团队</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-02</td>
+                  <td><strong>运动请求处理</strong></td>
+                  <td>接收 ADS 运动目标，进行合理性校验、优先级仲裁和轨迹平滑。</td>
+                  <td>ADS 域、底盘域控制器</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-03</td>
+                  <td><strong>底盘运动协调</strong></td>
+                  <td>将横、纵、垂向运动请求分解为各执行器协同目标。</td>
+                  <td>BBW、SBW、DBW、悬架</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-04</td>
+                  <td><strong>执行与闭环控制</strong></td>
+                  <td>执行器完成高动态闭环控制，并向域控回传真实状态。</td>
+                  <td>执行器、传感器</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-05</td>
+                  <td><strong>故障检测与降级</strong></td>
+                  <td>检测失效、隔离故障、执行冗余切换或最小风险机动。</td>
+                  <td>功能安全、ADS、驾驶员</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-06</td>
+                  <td><strong>数据记录与回传</strong></td>
+                  <td>记录关键事件、控制指令、状态和故障，用于审计和算法迭代。</td>
+                  <td>云平台、数据平台</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-07</td>
+                  <td><strong>验证与准入</strong></td>
+                  <td>完成台架、整车、道路和网络安全验证，支持公告准入。</td>
+                  <td>检测机构、试验场</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">BP-08</td>
+                  <td><strong>运营与维护</strong></td>
+                  <td>支持远程诊断、OTA、预测性维护、备件和召回。</td>
+                  <td>售后、车队、云端</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">4.2</span>
+            <h3>业务运营策略与规则</h3>
+          </div>
+          <ul class="req-list">
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">BR-R01</span><h4>安全优先规则</h4></div>
+              <p>当运动请求与安全边界冲突时，安全约束优先于体验、能耗和舒适性目标。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">BR-R02</span><h4>降级优先规则</h4></div>
+              <p>任何执行器失效时，系统优先进入可控降级或最小风险机动，不因保持功能完整而冒险。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">BR-R03</span><h4>控制权仲裁规则</h4></div>
+              <p>驾驶员接管、远程运营指令、ADS 运动请求和底盘安全保护之间定义明确优先级。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">BR-R04</span><h4>可追溯规则</h4></div>
+              <p>关键指令、故障、状态切换和软件版本必须可记录、可追溯、可审计。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">BR-R05</span><h4>网络安全与数据规则</h4></div>
+              <p>远程访问、OTA、诊断和数据回传必须经过身份认证、完整性校验和最小权限控制。</p>
+            </li>
+          </ul>
+
+          <div class="subsection-head">
+            <span class="number">4.3</span>
+            <h3>业务运行约束</h3>
+          </div>
+          <p>业务运行必须满足法规准入、功能安全、预期功能安全、网络安全、电磁兼容、热管理、供应链和成本约束。高安全相关变更需完成影响分析和再验证；每个关键过程必须被监控、记录并可追踪。线控转向和线控制动的无机械备份方案必须证明其失效运行和最小风险机动能力。</p>
+
+          <div class="subsection-head">
+            <span class="number">4.4</span>
+            <h3>业务运行质量</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>质量属性</th>
+                  <th>业务级目标</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>功能安全</strong></td>
+                  <td>关键链路 ASIL-D</td>
+                  <td>避免由于系统性失效和随机硬件失效导致不合理风险。</td>
+                </tr>
+                <tr>
+                  <td><strong>可用性</strong></td>
+                  <td>L4/L5 运营场景 fail-operational</td>
+                  <td>单一故障不应导致立即失去车辆运动控制。</td>
+                </tr>
+                <tr>
+                  <td><strong>实时性</strong></td>
+                  <td>控制周期 1-10 ms</td>
+                  <td>转向、制动、悬架和驱动按各自带宽完成闭环。</td>
+                </tr>
+                <tr>
+                  <td><strong>SOTIF</strong></td>
+                  <td>运行设计域内残余风险可接受</td>
+                  <td>覆盖边界场景、传感器/模型不足和执行能力限制。</td>
+                </tr>
+                <tr>
+                  <td><strong>数据完整性</strong></td>
+                  <td>关键链路端到端保护</td>
+                  <td>关键报文具备 CRC、序列号、超时和合理性校验。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">4.5</span>
+            <h3>业务结构</h3>
+          </div>
+          <p>业务结构由整车项目集、底盘系统与功能安全、软硬件开发、供应商质量、验证与准入、数据与运营六个主要职责域构成。底盘系统负责人统筹需求、架构、安全和供应商接口；功能安全、SOTIF 和网络安全建立跨域评审机制，确保从业务目标到软硬件实现的连续治理。</p>
+        </div>
+
+        <div class="subsection" id="conops">
+          <div class="subsection-head">
+            <span class="number">5</span>
+            <h3>提案系统初步运行概念 ConOps</h3>
+          </div>
+          <p>ConOps 从业务和用户视角描述系统如何工作：ADS 根据场景生成运动目标，底盘域控制器对目标进行校验与仲裁，线控执行器完成高动态闭环控制，整车动力学响应后形成新的车辆状态，再回传至 ADS 和驾驶员。系统必须能在正常、动态、L5 无人监督运行、降级、最小风险机动、维护和 OTA 状态下持续提供明确的运行能力。</p>
+
+          <div class="subsection-head">
+            <span class="number">5.1</span>
+            <h3>初步运行概念</h3>
+          </div>
+          <div class="grid-2">
+            <div class="fact">
+              <strong>运营政策与约束</strong>
+              <span>以运行设计域为边界；L3 允许驾驶员接管，L4 在 ODD 内可无需驾驶员执行动态驾驶任务；L5 面向全域完全自动驾驶，不依赖驾驶员作为备份，但保留远程运营协同与安全介入能力。</span>
+            </div>
+            <div class="fact">
+              <strong>提案系统描述</strong>
+              <span>分层运动执行平台，ADS 负责“去哪里”，底盘系统负责“如何安全执行”，中间以标准化运动服务接口连接。</span>
+            </div>
+            <div class="fact">
+              <strong>系统运行模式</strong>
+              <span>初始化、待机、正常、动态增强、L5 无人监督运行、降级运行、最小风险机动、紧急停车、维护与 OTA、关闭。</span>
+            </div>
+            <div class="fact">
+              <strong>用户与支持环境</strong>
+              <span>驾驶员、远程运营员、车队管理员、维修工程师、检测工程师；车间诊断、云端运营、试验场和 OTA 平台。</span>
+            </div>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">5.2</span>
+            <h3>初步运行场景</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>场景</th>
+                  <th>主要交互</th>
+                  <th>业务结果</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">SC-01</td>
+                  <td><strong>高速拥堵 L3 脱手</strong></td>
+                  <td>ADS 发出起停、跟车和车道保持请求，底盘以舒适性约束执行。</td>
+                  <td>降低驾驶员负荷，保证低速跟车平顺。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SC-02</td>
+                  <td><strong>城市路口左转</strong></td>
+                  <td>ADS 输出横摆和转角目标，SBW 与 BBW 协同完成路径跟踪。</td>
+                  <td>复杂路口轨迹精确、侧向响应稳定。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SC-03</td>
+                  <td><strong>紧急制动 AEB</strong></td>
+                  <td>ADS 发出强制动请求，底盘优先保证制动响应，悬架协同保持姿态。</td>
+                  <td>缩短制动距离，降低碰撞风险。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SC-04</td>
+                  <td><strong>SBW 单路失效</strong></td>
+                  <td>系统切换冗余控制路径，继续可控运行并提示接管或执行 MRM。</td>
+                  <td>避免转向失控，保证安全退出。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SC-05</td>
+                  <td><strong>L5 全域完全自动驾驶</strong></td>
+                  <td>ADS 在无驾驶员备份条件下执行全域动态驾驶任务，底盘系统提供多级冗余、自恢复、最小风险机动和远程运营协同。</td>
+                  <td>车辆在无 ODD 限制场景持续安全运行，不依赖驾驶员接管。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SC-06</td>
+                  <td><strong>OTA 升级</strong></td>
+                  <td>车辆进入维护模式，完成版本校验、下载、刷写和回滚。</td>
+                  <td>功能持续迭代，升级可追溯可回退。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection" id="brs-lifecycle">
+          <div class="subsection-head">
+            <span class="number">6</span>
+            <h3>其他初步生存周期概念</h3>
+          </div>
+          <div class="grid-2">
+            <div class="fact">
+              <strong>采办概念</strong>
+              <span>采用“系统集成商 + 模块供应商”模式，对底盘域控软件、执行器、芯片和传感器分级采购或联合开发。</span>
+            </div>
+            <div class="fact">
+              <strong>部署概念</strong>
+              <span>先在平台车型完成架构集成和标定，再通过车型配置、区域法规和 ODD 验证分阶段投放。</span>
+            </div>
+            <div class="fact">
+              <strong>支持概念</strong>
+              <span>以远程诊断、OTA、预测性维护、备件和关键事件数据为核心，形成全生命周期支持。</span>
+            </div>
+            <div class="fact">
+              <strong>弃置概念</strong>
+              <span>退役前清除用户与运营数据，按法规回收电池、电子器件和高价值材料，处理安全密钥和证书。</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection" id="brs-constraints">
+          <div class="subsection-head">
+            <span class="number">7</span>
+            <h3>项目约束</h3>
+          </div>
+          <p>项目约束包括平台车型量产节点、功能安全与网络安全认证节点、公告准入节点、成本目标和供应商定点周期。系统需求应优先支持首批 L3/L4 车型，并为 L5 完全自动驾驶预留架构、冗余和全场景安全验证能力，同时保留跨车型配置能力，避免过度定制导致验证成本失控。</p>
+
+          <div class="subsection-head">
+            <span class="number">8</span>
+            <h3>附录</h3>
+          </div>
+          <p>BRS 附录包含术语与缩略语、相关方清单、业务过程图、初步运行场景清单和需求编号说明，详见文末附录。</p>
+        </div>
+      </section>
+
+      <section class="band" id="strs">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">03 · Stakeholder Requirements Specification</div>
+            <h2>StRS：相关方需求规格说明</h2>
+            <p>对应 ISO/IEC/IEEE 29148:2018 表 4-5 的完整轮廓，从相关方视角明确“各方需要系统做到什么、在什么条件下接受”。</p>
+          </div>
+          <span class="section-code">StRS · Table 4-5</span>
+        </div>
+
+        <div class="subsection" id="strs-intro">
+          <div class="subsection-head">
+            <span class="number">1</span>
+            <h3>简介</h3>
+          </div>
+          <div class="subsection-head">
+            <span class="number">1.1</span>
+            <h3>相关方目的</h3>
+          </div>
+          <p>相关方需要线控底盘系统在高阶智驾场景下提供安全、可靠、开放、可升级的执行能力，同时满足各自对控制权、知识产权、成本、法规和商业回报的诉求。StRS 的作用是把这些分散诉求转成可验证、可追溯的系统级相关方需求。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.2</span>
+            <h3>相关方范围</h3>
+          </div>
+          <p>范围覆盖线控底盘系统全生命周期内影响或被影响的组织与个人，包括整车集成、系统开发、硬件供应、算法协同、法规准入、终端使用、远程运营、维修、保险和数据服务。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.3</span>
+            <h3>概况</h3>
+          </div>
+          <p>主机厂拥有整车安全总责任，是需求最终裁决者；底盘 Tier1 和 Tier2 提供执行能力与底层安全；ADS 方案商提出运动控制期望；监管机构划定不可突破的安全与准入边界；终端用户和运营方定义可用性、成本与体验；其他服务方提供地图、OTA、数据和保险支持。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.4</span>
+            <h3>定义</h3>
+          </div>
+          <p>相关方、需求优先级、验收准则、运行设计域 ODD、最小风险机动 MRM、接管请求、降级状态、功能安全 ASIL、预期功能安全 SOTIF 等定义沿用 BRS 第 1.4 节和文末附录。</p>
+
+          <div class="subsection-head">
+            <span class="number">1.5</span>
+            <h3>相关方</h3>
+          </div>
+          <div class="callout safe">
+            <strong>相关方列表是本 StRS 的核心输入。</strong>下面将相关方按角色、代表、定位、核心诉求、关键约束和优先级完整列出，随后映射为可验证的相关方需求。
+          </div>
+        </div>
+
+        <div class="subsection" id="stakeholders">
+          <div class="subsection-head">
+            <span class="number">1.5.1</span>
+            <h3>相关方列表</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>相关方</th>
+                  <th>代表</th>
+                  <th>定位与权责</th>
+                  <th>核心诉求</th>
+                  <th>优先级</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">SH-01</td>
+                  <td><strong>主机厂 OEM</strong></td>
+                  <td>蔚来、理想、小鹏、比亚迪、智己、小米、奔驰、宝马</td>
+                  <td>系统总负责人、需求定义方、最终责任主体</td>
+                  <td>法规达标、成本可控、控制权、差异化、数据闭环</td>
+                  <td><span class="pill coral">高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-02</td>
+                  <td><strong>底盘 Tier1</strong></td>
+                  <td>博世、大陆、采埃孚、耐世特、伯特利、拿森、利氪</td>
+                  <td>线控执行总成、底盘 ECU、底盘域控制器供给方</td>
+                  <td>定点规模、知识产权壁垒、标准化接口、降本</td>
+                  <td><span class="pill coral">高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-03</td>
+                  <td><strong>高阶智驾方案商 ADS</strong></td>
+                  <td>华为 ADS、Momenta、小鹏 XNGP、理想 AD、毫末、大疆车载</td>
+                  <td>感知、预测、规划模块，输出车辆运动期望</td>
+                  <td>低时延可靠接口、状态透明、预测式底盘协同</td>
+                  <td><span class="pill coral">高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-04</td>
+                  <td><strong>二级供应商 Tier2</strong></td>
+                  <td>NXP、英飞凌、ST、汇川、兆易创新、传感器厂商</td>
+                  <td>MCU/SoC、功率芯片、传感器、电机、电源、结构件</td>
+                  <td>车规认证、稳定定点、国产替代、产能保障</td>
+                  <td><span class="pill amber">中高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-05</td>
+                  <td><strong>监管与检测机构</strong></td>
+                  <td>工信部、国标委、中汽研、中汽中心、ISO/GB 工作组</td>
+                  <td>法规制定、准入检测、事故认定、安全监督</td>
+                  <td>公共安全、责任边界、统一验证体系</td>
+                  <td><span class="pill coral">高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-06</td>
+                  <td><strong>终端用户与运营方</strong></td>
+                  <td>C 端车主、Robotaxi、无人配送运营公司</td>
+                  <td>车辆使用者、接管执行者、车队运营主体</td>
+                  <td>安全、平顺、可接管、高可用、低维保</td>
+                  <td><span class="pill coral">高</span></td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SH-07</td>
+                  <td><strong>其他服务方</strong></td>
+                  <td>地图定位、OTA 数据、科研院所、保险机构</td>
+                  <td>定位、软件升级、数据回传、研究、风险定价</td>
+                  <td>数据可用性、升级安全、可解释性、风险数据</td>
+                  <td><span class="pill amber">中</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">1.5.2</span>
+            <h3>相关方需求</h3>
+          </div>
+          <p>相关方需求用于把“诉求、痛点、博弈点”转化为可验证的系统要求。以下每条需求标注来源相关方、验收准则和优先级。</p>
+          <ul class="req-list">
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-01</span><h4>整车安全总责任与可追溯性</h4></div>
+              <p>系统应向 OEM 提供完整的失效模式、控制权状态、关键事件记录和软件版本信息，支撑事故认定、责任划分和召回。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-05</span><span>优先级：高</span><span>验收：关键事件可追溯 ≥ 99.9%</span></div>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-02</span><h4>开放与标准化运动接口</h4></div>
+              <p>系统应向 ADS 提供标准化的运动请求、状态反馈、故障上报和接管请求接口，降低多方案适配成本。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-03</span><span>优先级：高</span><span>验收：标准接口覆盖率 ≥ 85%</span></div>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-03</span><h4>分层控制权与 IP 保护</h4></div>
+              <p>系统应支持黑盒、灰盒和白盒三种接口开放层级，使 OEM 与 Tier1 可根据商业协议选择开放深度。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-02 / SH-03</span><span>优先级：高</span><span>验收：三种开放模式可配置</span></div>
+            </li>
+            <li class="req-item warn">
+              <div class="req-title"><span class="req-id">SR-04</span><h4>低时延与高带宽执行</h4></div>
+              <p>线控转向、制动、驱动和悬架应满足智驾控制所需的响应带宽，避免底盘时延成为智驾能力瓶颈。</p>
+              <div class="req-meta"><span>来源：SH-03 / SH-06</span><span>优先级：高</span><span>验收：转向 ≤ 50 ms，制动 ≤ 100 ms</span></div>
+            </li>
+            <li class="req-item safe">
+              <div class="req-title"><span class="req-id">SR-05</span><h4>失效运行与最小风险机动</h4></div>
+              <p>关键执行器发生单点失效时，系统应能切换冗余路径、保持可控并完成最小风险机动或安全停车。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-05 / SH-06</span><span>优先级：极高</span><span>验收：关键单点失效不导致失控</span></div>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-06</span><h4>数据闭环与状态透明</h4></div>
+              <p>系统应向 ADS、云端和运营方提供车辆状态、底盘故障、降级状态和能耗数据，支持算法迭代和预测性维护。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-03 / SH-06 / SH-07</span><span>优先级：高</span><span>验收：关键数据采样与回传完整</span></div>
+            </li>
+            <li class="req-item warn">
+              <div class="req-title"><span class="req-id">SR-07</span><h4>法规与认证合规</h4></div>
+              <p>系统应满足 GB 17675-2025、GB 21670-2025、ISO 26262、ISO 21448 等适用法规和网络安全要求。</p>
+              <div class="req-meta"><span>来源：SH-05</span><span>优先级：极高</span><span>验收：通过公告准入与安全评估</span></div>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-08</span><h4>平台复用与成本可控</h4></div>
+              <p>系统应支持跨车型配置和标定，避免每个车型重新开发底层执行器和域控软件。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-02 / SH-04</span><span>优先级：高</span><span>验收：新车型适配以配置为主</span></div>
+            </li>
+            <li class="req-item safe">
+              <div class="req-title"><span class="req-id">SR-09</span><h4>用户信任与接管体验</h4></div>
+              <p>驾驶员和运营方应能理解系统状态、接收接管请求，并在接管后获得连续、可预期的车辆响应。</p>
+              <div class="req-meta"><span>来源：SH-06</span><span>优先级：高</span><span>验收：接管提示及时，操作不冲突</span></div>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SR-10</span><h4>OTA、诊断与网络安全</h4></div>
+              <p>系统应支持安全 OTA、远程诊断、故障码读取和预测性维护，同时保护车辆控制接口不被未授权访问。</p>
+              <div class="req-meta"><span>来源：SH-01 / SH-06 / SH-07</span><span>优先级：高</span><span>验收：升级可回滚，诊断可追溯</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="subsection" id="strs-management">
+          <div class="subsection-head">
+            <span class="number">2</span>
+            <h3>参考</h3>
+          </div>
+          <p>参考文献同 BRS 第 2 节，并重点使用 ISO/IEC/IEEE 29148:2018 附录 D.3 对 StRS 各信息项的解释。</p>
+
+          <div class="subsection-head">
+            <span class="number">3</span>
+            <h3>业务管理需求</h3>
+          </div>
+          <div class="subsection-head">
+            <span class="number">3.1</span>
+            <h3>业务环境</h3>
+          </div>
+          <p>从相关方视角看，业务环境的关键张力是：传统 Tier1 希望维持黑盒与知识产权壁垒；ADS 方案商和新势力希望底盘成为可调度执行器；监管机构要求任何开放都不得牺牲安全；用户希望线控无机械备份仍可信任。这些张力共同推动“软件定义底盘”和接口标准化。</p>
+
+          <div class="subsection-head">
+            <span class="number">3.2</span>
+            <h3>使命、目的与目标</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>相关方</th>
+                  <th>使命 / 目的</th>
+                  <th>可衡量目标</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>主机厂</strong></td>
+                  <td>以可控成本和可控风险推出 L3/L4/L5 车型</td>
+                  <td>平台复用率、认证周期、质量成本、数据闭环覆盖率</td>
+                </tr>
+                <tr>
+                  <td><strong>底盘 Tier1</strong></td>
+                  <td>获得量产定点并保护核心控制算法</td>
+                  <td>定点数量、交付质量、定制成本、接口标准化程度</td>
+                </tr>
+                <tr>
+                  <td><strong>ADS 方案商</strong></td>
+                  <td>获得低时延、透明、可预测的底盘执行能力</td>
+                  <td>接口延迟、状态反馈完整性、控制带宽</td>
+                </tr>
+                <tr>
+                  <td><strong>监管机构</strong></td>
+                  <td>保障公共安全并明确责任边界</td>
+                  <td>事故率、失效可追溯性、准入通过率</td>
+                </tr>
+                <tr>
+                  <td><strong>用户与运营方</strong></td>
+                  <td>获得安全、平顺、可维护的出行服务</td>
+                  <td>接管成功率、可用性、维护成本、故障率</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">3.3</span>
+            <h3>业务模型</h3>
+          </div>
+          <p>相关方价值交换围绕“整车量产、软件订阅、数据服务、运营服务”展开。主机厂购买硬件与软件，向用户出售车辆或向 Robotaxi 运营方提供服务；Tier1 通过硬件和基础软件收费；ADS 方案商通过算法授权或联合开发收费；数据平台以车辆运行数据支持算法迭代、保险定价和预测性维护。</p>
+
+          <div class="subsection-head">
+            <span class="number">3.4</span>
+            <h3>信息环境</h3>
+          </div>
+          <p>StRS 要求信息环境支持跨组织协作：OEM、Tier1、ADS 方案商、检测机构和运营方需要在统一的数据语义、接口版本、安全证书和诊断标准下工作。关键数据应区分实时控制数据、运行工况数据、商业敏感数据和监管审计数据，并分别设置访问权限、脱敏规则和留存周期。</p>
+        </div>
+
+        <div class="subsection" id="strs-operation">
+          <div class="subsection-head">
+            <span class="number">4</span>
+            <h3>系统运行需求</h3>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">4.1</span>
+            <h3>系统过程</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>系统过程</th>
+                  <th>输入</th>
+                  <th>输出</th>
+                  <th>关键需求</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">SY-01</td>
+                  <td><strong>运动目标接收与校验</strong></td>
+                  <td>ADS 运动请求、车辆状态、安全边界</td>
+                  <td>通过校验的运动目标、拒绝原因</td>
+                  <td>合理性校验、超时保护、优先级仲裁</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SY-02</td>
+                  <td><strong>底盘运动协调</strong></td>
+                  <td>横纵向目标、悬架状态、载荷估计</td>
+                  <td>制动、转向、驱动、悬架子目标</td>
+                  <td>毫秒级协调，避免执行器冲突</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SY-03</td>
+                  <td><strong>执行器闭环控制</strong></td>
+                  <td>子目标、传感器反馈、电源状态</td>
+                  <td>真实执行响应、健康状态</td>
+                  <td>高动态、高精度、热保护与耐久</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SY-04</td>
+                  <td><strong>故障检测与冗余切换</strong></td>
+                  <td>故障码、冗余通道状态、诊断结果</td>
+                  <td>降级状态、冗余切换指令</td>
+                  <td>单点失效可控，切换时间短</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SY-05</td>
+                  <td><strong>最小风险机动 MRM</strong></td>
+                  <td>系统能力、环境风险、接管状态</td>
+                  <td>减速靠边或安全停车轨迹</td>
+                  <td>无机械备份下仍可安全退出</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">SY-06</td>
+                  <td><strong>数据记录与上传</strong></td>
+                  <td>事件、状态、故障、版本</td>
+                  <td>云端可追溯数据包</td>
+                  <td>完整性、脱敏、网络安全</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">4.2</span>
+            <h3>系统运行策略与规则</h3>
+          </div>
+          <p>系统运行规则必须显式定义控制权仲裁、状态转换、冗余切换、接管请求、OTA 和数据访问。任何降级都应向 ADS、驾驶员或远程运营方提供明确且一致的状态；关键安全动作不得依赖云端实时指令。</p>
+
+          <div class="subsection-head">
+            <span class="number">4.3</span>
+            <h3>系统运行约束</h3>
+          </div>
+          <ul class="req-list">
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SY-C01</span><h4>功能安全约束</h4></div>
+              <p>关键安全链路满足 ASIL-D 分解，随机硬件失效和系统性失效均需覆盖。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SY-C02</span><h4>预期功能安全约束</h4></div>
+              <p>对模型误差、执行能力边界和 ODD 边缘场景开展 SOTIF 分析，确保残余风险可接受。</p>
+            </li>
+            <li class="req-item">
+              <div class="req-title"><span class="req-id">SY-C03</span><h4>实时性与确定性约束</h4></div>
+              <p>关键控制回路具备确定性时序、端到端超时保护和通信完整性校验。</p>
+            </li>
+            <li class="req-item warn">
+              <div class="req-title"><span class="req-id">SY-C04</span><h4>环境与热约束</h4></div>
+              <p>执行器满足整车温度、振动、EMC、防水防尘、盐雾和寿命要求。</p>
+            </li>
+            <li class="req-item warn">
+              <div class="req-title"><span class="req-id">SY-C05</span><h4>网络安全约束</h4></div>
+              <p>诊断、OTA、远程指令和控制接口具备身份认证、完整性、最小权限和日志审计。</p>
+            </li>
+          </ul>
+
+          <div class="subsection-head">
+            <span class="number">4.4</span>
+            <h3>系统运行模式与状态</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>模式 / 状态</th>
+                  <th>触发条件</th>
+                  <th>系统行为</th>
+                  <th>退出条件</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>初始化</strong></td>
+                  <td>上电、自检开始</td>
+                  <td>执行控制器、执行器、传感器和通信自检</td>
+                  <td>自检通过进入待机</td>
+                </tr>
+                <tr>
+                  <td><strong>待机</strong></td>
+                  <td>自检通过，未收到运行请求</td>
+                  <td>保持低功耗监控，等待运行使能</td>
+                  <td>收到运行请求进入正常</td>
+                </tr>
+                <tr>
+                  <td><strong>正常</strong></td>
+                  <td>运行使能，系统健康</td>
+                  <td>执行 ADS 运动请求，提供完整底盘能力</td>
+                  <td>故障或 ODD 退出触发降级</td>
+                </tr>
+                <tr>
+                  <td><strong>动态增强</strong></td>
+                  <td>高速、急转、紧急制动等场景</td>
+                  <td>提高控制带宽，悬架和扭矩主动协同</td>
+                  <td>场景结束返回正常</td>
+                </tr>
+                <tr>
+                  <td><strong>L5 无人监督运行</strong></td>
+                  <td>L5 授权完成，全域安全论证通过</td>
+                  <td>无驾驶员备份条件下执行全域动态驾驶，多级冗余、自恢复、远程运营协同和状态审计</td>
+                  <td>任务结束、安全介入或进入最小风险机动</td>
+                </tr>
+                <tr>
+                  <td><strong>降级运行</strong></td>
+                  <td>非关键功能失效或能力受限</td>
+                  <td>限制车速、加速度或场景，向用户明确提示</td>
+                  <td>故障恢复或进一步降级</td>
+                </tr>
+                <tr>
+                  <td><strong>最小风险机动</strong></td>
+                  <td>关键能力失效或驾驶员未接管</td>
+                  <td>执行减速、靠边或安全停车</td>
+                  <td>车辆静止并进入安全状态</td>
+                </tr>
+                <tr>
+                  <td><strong>紧急停车</strong></td>
+                  <td>存在立即碰撞风险或严重故障</td>
+                  <td>优先制动，限制再次起步</td>
+                  <td>风险解除并经诊断恢复</td>
+                </tr>
+                <tr>
+                  <td><strong>维护 / OTA</strong></td>
+                  <td>维修设备接入或 OTA 授权</td>
+                  <td>关闭动力控制，完成诊断或刷写</td>
+                  <td>维护完成并校验通过</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection" id="user-needs">
+          <div class="subsection-head">
+            <span class="number">5</span>
+            <h3>用户需求</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>用户</th>
+                  <th>用户需求</th>
+                  <th>接受准则</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">UR-01</td>
+                  <td><strong>驾驶员</strong></td>
+                  <td>接管请求清晰、提前，接管后操作连续不冲突。</td>
+                  <td>接管提示及时，接管成功率高。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-02</td>
+                  <td><strong>驾驶员</strong></td>
+                  <td>制动、转向和悬架响应平顺，无异常冲击。</td>
+                  <td>舒适性指标满足车型定义。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-03</td>
+                  <td><strong>远程运营员</strong></td>
+                  <td>远程掌握车辆健康、位置、模式和故障状态。</td>
+                  <td>关键状态可实时显示，延迟可控。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-04</td>
+                  <td><strong>远程运营员</strong></td>
+                  <td>在法规允许场景下可发出安全停车或恢复运行指令。</td>
+                  <td>指令具备鉴权、审计和安全约束。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-05</td>
+                  <td><strong>车队管理员</strong></td>
+                  <td>查看车辆可用性、故障率、维保和能耗。</td>
+                  <td>支持车队级报表与告警。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-06</td>
+                  <td><strong>维修工程师</strong></td>
+                  <td>读取故障码、冻结帧、执行器测试和标定状态。</td>
+                  <td>诊断过程安全、可追溯、可授权。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-07</td>
+                  <td><strong>检测工程师</strong></td>
+                  <td>获取法规验证所需的工况、事件和安全证据。</td>
+                  <td>数据格式满足公告与审计要求。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-08</td>
+                  <td><strong>Tier1 / ADS 工程师</strong></td>
+                  <td>通过标准接口调试、标定和验证底盘能力。</td>
+                  <td>接口文档、版本和权限清晰。</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">UR-09</td>
+                  <td><strong>远程运营员 / 车队管理员</strong></td>
+                  <td>对 L5 无人监督车辆进行状态审计、远程协同、安全介入和任务调度。</td>
+                  <td>全程可监控、可审计、可授权介入。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection" id="lifecycle">
+          <div class="subsection-head">
+            <span class="number">6</span>
+            <h3>详细生存周期概念</h3>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">6.1</span>
+            <h3 id="opscon">运行概念 OpsCon</h3>
+          </div>
+          <div class="callout">
+            <strong>ConOps 与 OpsCon 的分工：</strong>ConOps 回答“系统在业务中如何被使用，为什么这样运行”；OpsCon 进一步回答“系统在日常运行中具体有哪些模式、操作流程、人员角色和支持环境”。
+          </div>
+          <p>OpsCon 定义线控底盘系统的日常运行方式：车辆上电后完成自检并进入待机；收到运行使能后进入正常模式；ADS 或驾驶员请求运动控制时，底盘域控制器进行仲裁与协调；发生故障时按安全策略进入降级或最小风险机动；远程运营中心对 L4/L5 车队进行监督；L5 可在通过全域安全论证后进入无人监督运行，但应保留远程运营协同、事件介入和状态审计能力；维修和 OTA 仅在授权维护模式下执行。</p>
+
+          <div class="grid-3">
+            <div class="fact">
+              <strong>运行主体</strong>
+              <span>ADS、底盘域控、驾驶员、远程运营中心、车队平台、维修终端。</span>
+            </div>
+            <div class="fact">
+              <strong>运行节奏</strong>
+              <span>连续实时运行，控制周期毫秒级，云端交互为非实时或准实时。</span>
+            </div>
+            <div class="fact">
+              <strong>支持环境</strong>
+              <span>车载诊断、OTA 平台、试验场、维修车间、法规检测系统。</span>
+            </div>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">6.2</span>
+            <h3>运行场景</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>运行场景</th>
+                  <th>参与者</th>
+                  <th>关键序列</th>
+                  <th>成功标准</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="trace-cell">OS-01</td>
+                  <td><strong>日常自动驾驶行程</strong></td>
+                  <td>ADS、底盘域控、执行器</td>
+                  <td>自检、运行使能、运动请求、闭环执行、状态反馈、行程结束</td>
+                  <td>全程安全、平顺，无异常降级</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-02</td>
+                  <td><strong>L3 驾驶员接管</strong></td>
+                  <td>ADS、驾驶员、底盘系统</td>
+                  <td>系统请求接管、驾驶员操作、控制权转移、底盘继续响应</td>
+                  <td>接管连续，控制权清晰</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-03</td>
+                  <td><strong>冗余切换</strong></td>
+                  <td>底盘域控、执行器</td>
+                  <td>检测故障、隔离、切换冗余通道、状态上报</td>
+                  <td>切换时间满足 ASIL 目标</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-04</td>
+                  <td><strong>最小风险机动</strong></td>
+                  <td>底盘系统、ADS、远程运营</td>
+                  <td>识别不可恢复故障、规划安全轨迹、减速靠边停车</td>
+                  <td>车辆安全静止并请求救援</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-05</td>
+                  <td><strong>远程运营介入</strong></td>
+                  <td>远程运营员、车队平台、车辆</td>
+                  <td>监控告警、远程诊断、授权安全停车或恢复</td>
+                  <td>远程指令鉴权并执行</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-06</td>
+                  <td><strong>L5 无人监督运行</strong></td>
+                  <td>ADS、底盘系统、远程运营中心</td>
+                  <td>全域场景授权、无人监督动态驾驶、多级冗余与自恢复、远程运营协同和事件审计</td>
+                  <td>全程不依赖驾驶员备份，系统持续安全可控</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-07</td>
+                  <td><strong>OTA 升级</strong></td>
+                  <td>云平台、维修人员、车辆</td>
+                  <td>版本校验、下载、刷写、验证、回滚</td>
+                  <td>升级成功且可回退</td>
+                </tr>
+                <tr>
+                  <td class="trace-cell">OS-08</td>
+                  <td><strong>事故后数据提取</strong></td>
+                  <td>检测机构、OEM、保险</td>
+                  <td>锁定事件、提取冻结帧、生成审计报告</td>
+                  <td>数据完整、不可抵赖</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection-head">
+            <span class="number">6.3</span>
+            <h3>采办概念</h3>
+          </div>
+          <p>采用分级采办：底盘域控软件和系统集成能力由 OEM 自研或与 Tier1 联合开发；执行器总成、ECU 和传感器按模块定点；功能安全 MCU、功率器件和电机由 Tier2 供应。验收包括功能、性能、安全、网络安全、可靠性和供应连续性。</p>
+
+          <div class="subsection-head">
+            <span class="number">6.4</span>
+            <h3>部署概念</h3>
+          </div>
+          <p>先在平台样车完成硬件集成、标定和台架验证，再进入封闭场地、开放道路和法规认证。L3/L4 能力按 ODD 分区域、分场景逐步部署；L5 能力需在完成全域场景安全论证、冗余验证和远程协同测试后逐步放开，OTA 用于小范围灰度发布和快速回滚。</p>
+
+          <div class="subsection-head">
+            <span class="number">6.5</span>
+            <h3>支持概念</h3>
+          </div>
+          <p>支持体系包括远程诊断、预测性维护、OTA、备件管理、维修培训和关键事件分析。通过车辆运行数据持续更新底盘健康模型，缩短故障定位时间并降低车队停机。</p>
+
+          <div class="subsection-head">
+            <span class="number">6.6</span>
+            <h3>弃置概念</h3>
+          </div>
+          <p>退役时清除用户数据、车队数据和安全证书，撤销车辆数字身份；按法规处理电池、电子器件、稀土电机和液压/高压部件，并保留必要的安全事件记录用于合规审计。</p>
+        </div>
+
+        <div class="subsection" id="strs-lifecycle">
+          <div class="subsection-head">
+            <span class="number">7</span>
+            <h3>项目约束</h3>
+          </div>
+          <p>StRS 的项目约束与 BRS 保持一致，同时补充相关方协作约束：接口变更需跨方评审，安全需求变更需影响分析，供应商黑盒交付物必须提供足够的接口、诊断和安全证据，以满足整车集成与公告要求。</p>
+
+          <div class="subsection-head">
+            <span class="number">8</span>
+            <h3>附录</h3>
+          </div>
+          <p>StRS 附录包括相关方列表、相关方需求清单、系统模式与状态表、OpsCon 场景清单、术语和需求追溯矩阵。</p>
+        </div>
+      </section>
+
+      <section class="band" id="traceability">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">04 · Traceability</div>
+            <h2>需求追溯矩阵</h2>
+            <p>纵向追溯用于确认相关方需求均能在系统运行需求、用户需求或生命周期概念中得到承接。</p>
+          </div>
+          <span class="section-code">SR ↔ SY / UR / OS</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>相关方需求</th>
+                <th>主要来源</th>
+                <th>下游承接</th>
+                <th>验证方式</th>
+                <th>优先级</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>SR-01 安全责任与追溯</strong></td>
+                <td>SH-01 / SH-05</td>
+                <td class="trace-cell">SY-04 / SY-05 / SY-06 / OS-08</td>
+                <td>故障注入、事件审计、事故回放</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-02 开放运动接口</strong></td>
+                <td>SH-01 / SH-03</td>
+                <td class="trace-cell">SY-01 / SY-02 / UR-08</td>
+                <td>接口一致性测试、跨供应商集成</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-03 控制权与 IP</strong></td>
+                <td>SH-01 / SH-02 / SH-03</td>
+                <td class="trace-cell">SY-01 / SY-02 / OS-02</td>
+                <td>模式配置、权限测试、安全评审</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-04 低时延高带宽</strong></td>
+                <td>SH-03 / SH-06</td>
+                <td class="trace-cell">SY-01 / SY-02 / SY-03</td>
+                <td>HIL 台架、整车性能测试</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-05 失效运行与 MRM</strong></td>
+                <td>SH-01 / SH-05 / SH-06</td>
+                <td class="trace-cell">SY-04 / SY-05 / OS-03 / OS-04 / OS-06</td>
+                <td>故障注入、冗余切换、MRM 测试</td>
+                <td><span class="pill coral">极高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-06 数据闭环</strong></td>
+                <td>SH-01 / SH-03 / SH-06 / SH-07</td>
+                <td class="trace-cell">SY-06 / UR-03 / UR-05 / UR-07 / UR-09 / OS-06</td>
+                <td>数据回放、覆盖率、完整性测试</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-07 法规认证</strong></td>
+                <td>SH-05</td>
+                <td class="trace-cell">SY-C01 / SY-C02 / SY-C05 / UR-07</td>
+                <td>公告试验、安全评估、网络安全评估</td>
+                <td><span class="pill coral">极高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-08 平台复用</strong></td>
+                <td>SH-01 / SH-02 / SH-04</td>
+                <td class="trace-cell">SY-02 / SY-03 / UR-08</td>
+                <td>多车型配置测试、复用率审计</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-09 用户信任与接管</strong></td>
+                <td>SH-06</td>
+                <td class="trace-cell">UR-01 / UR-02 / OS-02</td>
+                <td>驾驶员主观评价、接管测试</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+              <tr>
+                <td><strong>SR-10 OTA 与诊断安全</strong></td>
+                <td>SH-01 / SH-06 / SH-07</td>
+                <td class="trace-cell">SY-C05 / UR-03 / UR-06 / OS-07</td>
+                <td>OTA 回滚、渗透测试、诊断审计</td>
+                <td><span class="pill coral">高</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">“下游承接”列中的编号表示该相关方需求主要被哪些系统过程、用户需求或运行场景承接，可作为后续 SyRS 和 SRS 分解的输入。</p>
+      </section>
+
+      <section class="band" id="conclusion">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Conclusion</div>
+            <h2>结论</h2>
+          </div>
+        </div>
+        <p class="lede">面向 L3/L4/L5 的高阶智驾线控底盘是跨域协同系统：主机厂承担整车安全总责任；底盘 Tier1 提供硬件执行与底层安全；ADS 方案商负责上层运动规划；芯片、传感器 Tier2 提供底层硬件支撑；监管机构划定安全与准入底线；用户与运营方决定商业化落地节奏。</p>
+        <div class="callout safe">
+          当前产业链的主要矛盾集中在四个方面：<strong>底盘控制权分配、接口开放度、功能安全验证成本、法规责任界定</strong>。BRS 应据此定义可量化业务目标；StRS 应把各方博弈转成可追溯、可验证的需求，避免把组织摩擦直接带入系统设计。
+        </div>
+      </section>
+
+      <section class="band" id="appendix">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Appendix</div>
+            <h2>附录</h2>
+          </div>
+        </div>
+        <div class="subsection">
+          <div class="subsection-head">
+            <span class="number">8.1</span>
+            <h3>缩写与缩略语</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>缩写</th>
+                  <th>全称</th>
+                  <th>中文说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>ADS</strong></td><td>Automated Driving System</td><td>自动驾驶系统</td></tr>
+                <tr><td><strong>ASIL</strong></td><td>Automotive Safety Integrity Level</td><td>汽车安全完整性等级</td></tr>
+                <tr><td><strong>BBW</strong></td><td>Brake-by-Wire</td><td>线控制动</td></tr>
+                <tr><td><strong>BRS</strong></td><td>Business Requirements Specification</td><td>业务需求规格说明</td></tr>
+                <tr><td><strong>ConOps</strong></td><td>Concept of Operations</td><td>运行概念</td></tr>
+                <tr><td><strong>DBW</strong></td><td>Drive-by-Wire</td><td>线控驱动</td></tr>
+                <tr><td><strong>EHB</strong></td><td>Electro-Hydraulic Brake</td><td>电子液压制动</td></tr>
+                <tr><td><strong>EMB</strong></td><td>Electro-Mechanical Brake</td><td>电子机械制动</td></tr>
+                <tr><td><strong>MRM</strong></td><td>Minimal Risk Maneuver</td><td>最小风险机动</td></tr>
+                <tr><td><strong>ODD</strong></td><td>Operational Design Domain</td><td>运行设计域</td></tr>
+                <tr><td><strong>OpsCon</strong></td><td>Operational Concept</td><td>运行概念，详细运行说明</td></tr>
+                <tr><td><strong>SBW</strong></td><td>Steer-by-Wire</td><td>线控转向</td></tr>
+                <tr><td><strong>SoI</strong></td><td>System of Interest</td><td>系统对象</td></tr>
+                <tr><td><strong>SOTIF</strong></td><td>Safety of the Intended Functionality</td><td>预期功能安全</td></tr>
+                <tr><td><strong>StRS</strong></td><td>Stakeholder Requirements Specification</td><td>相关方需求规格说明</td></tr>
+                <tr><td><strong>OTA</strong></td><td>Over-the-Air</td><td>空中升级</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>复杂系统工程 · 2026.11.13</span>
+        <span>依据 ISO/IEC/IEEE 29148:2018 表 4-1 与表 4-5 编制</span>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      document.querySelectorAll('.subsection-head').forEach(head => {
+        const number = head.querySelector('.number');
+        if (!number) return;
+        const level = (number.textContent.trim().match(/\./g) || []).length + 1;
+        head.dataset.level = String(level);
+      });
+
+      const links = Array.from(document.querySelectorAll('.toc a[href^="#"]'));
+      const sections = links
+        .map(link => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+      if (!sections.length) return;
+
+      const setActive = id => {
+        links.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+        });
+      };
+
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible) setActive(visible.target.id);
+      }, {
+        rootMargin: '-92px 0px -58% 0px',
+        threshold: [0.02, 0.15, 0.35, 0.6]
+      });
+
+      sections.forEach(section => observer.observe(section));
+
+      links.forEach(link => {
+        link.addEventListener('click', () => setActive(link.getAttribute('href').slice(1)));
+      });
+    })();
+  </script>
+</body>
+</html>
