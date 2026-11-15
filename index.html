@@ -408,6 +408,14 @@
       will-change: transform;
     }
 
+    .project-panel--teal {
+      background: #1a4c49;
+    }
+
+    .project-panel + .project-panel {
+      margin-top: 16px;
+    }
+
     .project-panel:hover {
       transform: translateY(-9px);
       box-shadow: 0 30px 60px rgba(24, 52, 72, 0.22);
@@ -601,11 +609,11 @@
 
     <section class="hero" aria-labelledby="page-title">
       <div class="hero-copy">
-        <div class="eyebrow">Engineering Repository · 2026.11.08</div>
+        <div class="eyebrow">Engineering Repository · 2026.11.15</div>
         <h1 id="page-title">complex-systems-engineering-2026</h1>
         <p>用于整理复杂系统工程、智能汽车线控底盘、系统层次与需求等内容的仓库入口。</p>
         <div class="stats" aria-label="仓库内容概览">
-          <span class="stat"><strong>1</strong> 个项目</span>
+          <span class="stat"><strong>2</strong> 个项目</span>
           <span class="stat"><strong>6</strong> 个系统层次</span>
           <span class="stat"><strong>5</strong> 个线控子系统</span>
         </div>
@@ -672,12 +680,12 @@
       </div>
     </section>
 
-    <section class="project-section" aria-labelledby="project-title">
+    <section class="project-section" aria-label="仓库项目">
       <div class="section-kicker">Repository Items</div>
       <article class="project-panel">
         <div class="project-content">
-          <div class="project-index">Item 01 · 线控底盘</div>
-          <h2 id="project-title">面向高阶智能驾驶的线控底盘系统</h2>
+          <div class="project-index">Item 01 · 系统层次</div>
+          <h2>面向高阶智能驾驶的线控底盘系统</h2>
           <p>进入交互式页面，查看任务、体系、整机、系统、子系统、模块六个层次，以及各层级的系统需求、关键指标与模块详细要求。</p>
           <div class="project-tags" aria-label="内容标签">
             <span class="project-tag">任务层</span>
@@ -689,7 +697,29 @@
           </div>
         </div>
         <a class="project-action" href="./11.6/系统层次展示.html" target="_blank" rel="noopener">
-          打开线控底盘系统
+          打开系统层次展示
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 17 17 7"></path>
+            <path d="M7 7h10v10"></path>
+          </svg>
+        </a>
+      </article>
+
+      <article class="project-panel project-panel--teal">
+        <div class="project-content">
+          <div class="project-index">Item 02 · BRS / StRS</div>
+          <h2>线控底盘系统 BRS 与 StRS</h2>
+          <p>进入交互式页面，查看面向高阶智能驾驶（L3/L4/L5）线控底盘系统的业务需求与相关方需求规格说明。</p>
+          <div class="project-tags" aria-label="内容标签">
+            <span class="project-tag">BRS</span>
+            <span class="project-tag">StRS</span>
+            <span class="project-tag">L3/L4/L5</span>
+            <span class="project-tag">线控底盘</span>
+            <span class="project-tag">需求规格</span>
+          </div>
+        </div>
+        <a class="project-action" href="./11.13/线控底盘BRS与StRS.html" target="_blank" rel="noopener">
+          打开 BRS 与 StRS 页面
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M7 17 17 7"></path>
             <path d="M7 7h10v10"></path>
@@ -700,7 +730,7 @@
 
     <footer class="footer">
       <span>Complex Systems · 仓库入口</span>
-      <span>最后更新：2026-11-08</span>
+      <span>最后更新：2026-11-15</span>
     </footer>
   </main>
 </body>
