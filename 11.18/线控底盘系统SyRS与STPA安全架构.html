@@ -1,1 +1,1735 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>面向高阶智能驾驶的线控底盘系统需求规格书与安全架构</title>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --surface: #ffffff;
+      --paper: #f8fafb;
+      --ink: #1e2936;
+      --muted: #5b6876;
+      --line: #dde3e7;
+      --line-strong: #c4ced5;
+      --navy: #1d4f70;
+      --navy-deep: #123650;
+      --steel: #2f6f9f;
+      --steel-soft: #e8f1f7;
+      --teal: #1f7a7a;
+      --teal-soft: #e4f2f1;
+      --coral: #a64a3b;
+      --coral-soft: #f6e9e6;
+      --amber: #96681f;
+      --amber-soft: #f7efdd;
+      --green: #39764d;
+      --green-soft: #e7f1e9;
+      --shadow: 0 14px 34px rgba(28, 43, 60, 0.10);
+      --shadow-soft: 0 5px 18px rgba(28, 43, 60, 0.06);
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 88px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topnav {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      height: 68px;
+      padding: 0 max(28px, 3vw);
+      color: var(--navy);
+      background: rgba(245, 247, 248, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .brand::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 28px;
+      height: 3px;
+      background: var(--coral);
+    }
+
+    .topnav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .topnav-links a {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 160ms ease;
+    }
+
+    .topnav-links a:hover,
+    .topnav-links a:focus-visible {
+      color: var(--coral);
+      outline: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 276px minmax(0, 1fr);
+      gap: 30px;
+      width: min(1500px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 108px 0 72px;
+    }
+
+    .toc {
+      align-self: start;
+      position: sticky;
+      top: 92px;
+      max-height: calc(100vh - 116px);
+      overflow-y: auto;
+      padding: 15px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      scrollbar-width: thin;
+    }
+
+    .toc-label {
+      margin: 0 0 11px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .toc-group {
+      display: grid;
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+
+    .toc-heading {
+      margin: 8px 0 3px;
+      padding: 6px 9px;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .toc-group a {
+      display: block;
+      padding: 6px 9px;
+      color: var(--muted);
+      border-left: 4px solid transparent;
+      border-radius: 0 5px 5px 0;
+      font-size: 12px;
+      line-height: 1.45;
+      transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .toc-group a:hover,
+    .toc-group a:focus-visible,
+    .toc-group a.active {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-left-color: var(--coral);
+      outline: none;
+    }
+
+    .toc-group a.active {
+      font-weight: 800;
+    }
+
+    .content {
+      min-width: 0;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 8px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 12px;
+      color: var(--coral);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 22px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 44px;
+      line-height: 1.12;
+      font-weight: 800;
+    }
+
+    .masthead p {
+      margin: 16px 0 0;
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.72;
+    }
+
+    .cover-actions {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+    }
+
+    .meta {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      color: var(--navy);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stat strong {
+      color: var(--navy);
+    }
+
+    .band {
+      padding: 42px 0 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .band:first-of-type {
+      border-top: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 7px;
+      color: var(--coral);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .section-kicker::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      color: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 31px;
+      line-height: 1.18;
+      font-weight: 800;
+      padding-left: 14px;
+      border-left: 5px solid var(--coral);
+    }
+
+    .section-head p {
+      max-width: 780px;
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .section-code {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 6px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .subsection {
+      margin: 30px 0 0;
+    }
+
+    .subsection:first-child {
+      margin-top: 0;
+    }
+
+    .subsection-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      background: var(--paper);
+      border-left: 4px solid var(--steel);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .subsection-head::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      margin-left: 10px;
+      background: var(--line-strong);
+    }
+
+    .subsection-head .number {
+      flex: 0 0 auto;
+      padding: 3px 6px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .subsection-head h3 {
+      margin: 0;
+      color: var(--steel);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-size: 18px;
+      line-height: 1.32;
+      font-weight: 800;
+    }
+
+    .subsection-head[data-level="1"] {
+      padding: 13px 14px;
+      background: var(--navy);
+      border-left: 5px solid var(--coral);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .subsection-head[data-level="1"] .number {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .subsection-head[data-level="1"] h3 {
+      color: #ffffff;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .subsection-head[data-level="1"]::after {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .subsection-head[data-level="3"] {
+      padding: 7px 10px;
+      background: var(--surface);
+      border-left: 3px solid var(--coral);
+    }
+
+    .subsection-head[data-level="3"] .number {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-color: #e7c2bc;
+    }
+
+    .subsection-head[data-level="3"] h3 {
+      color: var(--coral);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .subsection-head[data-level="3"]::after {
+      background: transparent;
+    }
+
+    .subsection p {
+      margin: 8px 0 0 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .subsection p strong {
+      color: var(--navy);
+    }
+
+    .lede {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .lede strong {
+      color: var(--navy);
+    }
+
+    .callout {
+      margin: 16px 0 0;
+      padding: 15px 17px;
+      color: var(--ink);
+      background: var(--paper);
+      border-left: 3px solid var(--steel);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .callout.warn {
+      background: var(--amber-soft);
+      border-left-color: var(--amber);
+    }
+
+    .callout.safe {
+      background: var(--green-soft);
+      border-left-color: var(--green);
+    }
+
+    .callout strong {
+      color: var(--navy);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .fact {
+      min-width: 0;
+      padding: 15px 16px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--steel);
+      border-radius: 6px;
+      box-shadow: var(--shadow-soft);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .fact:hover {
+      transform: translateY(-3px);
+      border-color: var(--line-strong);
+      box-shadow: 0 12px 24px rgba(28, 43, 60, 0.10);
+    }
+
+    .fact strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .fact span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .req-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .req-item {
+      padding: 15px 16px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--steel);
+      border-radius: 6px;
+      box-shadow: var(--shadow-soft);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .req-item:hover {
+      transform: translateY(-3px);
+      border-color: var(--line-strong);
+      box-shadow: 0 12px 24px rgba(28, 43, 60, 0.10);
+    }
+
+    .req-item.warn {
+      border-left-color: var(--amber);
+    }
+
+    .req-item.safe {
+      border-left-color: var(--green);
+    }
+
+    .req-item.danger {
+      border-left-color: var(--coral);
+    }
+
+    .req-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .req-id {
+      flex: 0 0 auto;
+      padding: 2px 5px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .req-item h4 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .req-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.58;
+    }
+
+    .req-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .req-meta span {
+      padding: 4px 7px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .diagram-wrap {
+      margin-top: 16px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .diagram-wrap svg {
+      display: block;
+      width: 100%;
+      min-width: 900px;
+      height: auto;
+    }
+
+    .architecture-flow {
+      margin-top: 16px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .architecture-inner {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+      min-width: 760px;
+      padding: 18px;
+    }
+
+    .arch-node {
+      position: relative;
+      min-height: 118px;
+      padding: 15px 13px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--steel);
+      border-radius: 6px;
+    }
+
+    .arch-node::after {
+      content: "›";
+      position: absolute;
+      right: -15px;
+      top: 50%;
+      z-index: 1;
+      color: var(--steel);
+      font-size: 22px;
+      font-weight: 800;
+      transform: translateY(-50%);
+    }
+
+    .arch-node:last-child::after {
+      content: "";
+    }
+
+    .arch-node strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .arch-node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .table-wrap {
+      margin-top: 14px;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #ffffff;
+      background: var(--navy);
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fafcfd;
+    }
+
+    tbody tr:hover {
+      background: var(--steel-soft);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    td strong {
+      color: var(--navy);
+    }
+
+    .trace-cell {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      color: var(--steel);
+      background: var(--steel-soft);
+      border: 1px solid #c9dce6;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.amber {
+      color: var(--amber);
+      background: var(--amber-soft);
+      border-color: #e5cf9f;
+    }
+
+    .pill.green {
+      color: var(--green);
+      background: var(--green-soft);
+      border-color: #bfdac7;
+    }
+
+    .pill.coral {
+      color: var(--coral);
+      background: var(--coral-soft);
+      border-color: #e7c2bc;
+    }
+
+    .table-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 54px;
+      padding: 22px 0 0;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1050px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        max-height: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        padding: 0;
+      }
+
+      .toc-label,
+      .toc-group {
+        display: contents;
+      }
+
+      .toc-heading {
+        margin: 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+      }
+
+      .toc-group a {
+        flex: 0 0 auto;
+        padding: 6px 9px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 0;
+        border-radius: 6px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        width: min(100% - 24px, 1500px);
+        padding-top: 90px;
+      }
+
+      .masthead,
+      .section-head {
+        flex-direction: column;
+      }
+
+      .cover-actions {
+        align-items: flex-start;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .section-head h2 {
+        font-size: 27px;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .architecture-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .arch-node::after {
+        content: "∨";
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -14px;
+        transform: translateX(-50%);
+      }
+
+      .arch-node:last-child::after {
+        content: "";
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="主导航">
+    <a class="brand" href="#top">面向高阶智能驾驶的线控底盘系统</a>
+    <div class="topnav-links">
+      <a href="#overview">概述</a>
+      <a href="#requirements">系统需求</a>
+      <a href="#architecture">初始架构</a>
+      <a href="#control">控制框图</a>
+      <a href="#stpa">STPA</a>
+      <a href="#safety">安全架构</a>
+      <a href="#traceability">追溯与验证</a>
+    </div>
+  </nav>
+
+  <main class="layout" id="top">
+    <aside class="toc" aria-label="目录">
+      <p class="toc-label">Contents</p>
+      <div class="toc-group">
+        <a href="#overview">1 概述</a>
+        <a href="#references">2 引用文件</a>
+        <a href="#requirements">3 系统需求</a>
+        <a href="#verification">4 验证方法</a>
+        <a href="#appendix">5 附录</a>
+      </div>
+      <div class="toc-group">
+        <span class="toc-heading">架构与安全分析</span>
+        <a href="#architecture">6 初始系统架构</a>
+        <a href="#control">7 系统控制框图</a>
+        <a href="#stpa">8 STPA分析</a>
+        <a href="#safety-requirements">9 安全需求</a>
+        <a href="#safety">10 安全架构</a>
+        <a href="#traceability">11 追溯与验证</a>
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="masthead">
+        <div>
+          <div class="eyebrow">小组作业 3 · ISO/IEC/IEEE 29148:2018 表 5-1</div>
+          <h1>面向高阶智能驾驶的线控底盘系统需求规格书与安全架构</h1>
+          <p>本文以具备 L3/L4 高阶智能驾驶能力的纯电动乘用车为对象，先按 SyRS 范例建立系统需求规格，再定义初始系统架构与系统控制框图；随后基于 STPA 识别系统级危险、不安全控制行为及其致因，形成安全需求与安全架构。</p>
+          <div class="stats">
+            <span class="stat"><strong>对象</strong> 线控底盘</span>
+            <span class="stat"><strong>层级</strong> ADC + CDC + SBW + BBW + DBW</span>
+            <span class="stat"><strong>方法</strong> SyRS + STPA</span>
+            <span class="stat"><strong>输出</strong> 需求 / 架构 / 安全</span>
+          </div>
+        </div>
+        <div class="cover-actions">
+          <span class="meta">复杂系统工程 · 2026.11.18</span>
+        </div>
+      </header>
+
+      <section class="band" id="overview">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">01 · Introduction</div>
+            <h2>概述</h2>
+            <p>系统需求只描述抽象功能与可度量的约束，不规定具体实现；实现方案在初始架构与安全架构中进一步展开。</p>
+          </div>
+          <span class="section-code">SyRS 1.1–1.4</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">1.1</span><h3>系统目的</h3></div>
+          <p class="lede">线控底盘通过电信号替代机械、液压或机械液压混合式硬连接，接收自动驾驶系统输出的运动控制指令，完成转向、制动和驱动的闭环执行，为高阶智能驾驶提供安全、实时、可冗余控制的车辆运动执行能力。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">1.2</span><h3>系统范围</h3></div>
+          <p>本系统范围覆盖自动驾驶域接口、底盘域控制、线控转向、线控制动、线控驱动、关键传感器反馈、通信与电源保障。系统不替代自动驾驶系统的环境感知、行为决策和轨迹规划。</p>
+          <div class="grid-2">
+            <div class="fact">
+              <strong>包含</strong>
+              <span>ADC 控制指令接收、运动协调、SBW/BBW/DBW 执行控制、车辆状态反馈、故障诊断与安全降级。</span>
+            </div>
+            <div class="fact">
+              <strong>不包含</strong>
+              <span>摄像头、激光雷达、毫米波雷达的目标识别与融合，以及高精地图和全局路径规划。</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">1.3</span><h3>系统概况</h3></div>
+          <div class="subsection-head" data-level="3"><span class="number">1.3.1</span><h3>系统环境</h3></div>
+          <p>系统运行于城市道路、高速道路、乡村道路、拥堵路段及雨雪雾等环境；运行设计域 ODD 需由整车级自动驾驶系统定义，底盘系统据此提供车辆运动执行能力。</p>
+          <div class="subsection-head" data-level="3"><span class="number">1.3.2</span><h3>系统功能</h3></div>
+          <p>核心功能包括目标运动指令接收与校验、车辆纵向/横向运动控制、转向制动驱动协调控制、执行状态监测、故障检测隔离与安全降级。</p>
+          <div class="subsection-head" data-level="3"><span class="number">1.3.3</span><h3>用户特征</h3></div>
+          <div class="grid-3">
+            <div class="fact"><strong>自动驾驶系统</strong><span>发送目标运动指令，接收车辆状态与故障反馈。</span></div>
+            <div class="fact"><strong>驾驶员 / 乘客</strong><span>在 L3 接管请求或人工驾驶模式下参与控制与监督。</span></div>
+            <div class="fact"><strong>维修 / 运营人员</strong><span>通过诊断、OTA 和远程运营接口完成维护、升级与监控。</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">1.4</span><h3>定义</h3></div>
+          <p>本报告中的缩写与术语见附录 5.2。关键概念为：线控转向 SBW、线控制动 BBW、线控驱动 DBW、底盘域控制器 CDC、系统理论过程分析 STPA、最小风险状态 MRC。</p>
+        </div>
+      </section>
+
+      <section class="band" id="references">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">02 · References</div>
+            <h2>引用文件</h2>
+          </div>
+          <span class="section-code">SyRS 2</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>标准 / 文档</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ISO/IEC/IEEE 29148:2018</strong></td><td>系统需求规格说明 SyRS 范例结构</td></tr>
+              <tr><td><strong>ISO 26262:2018</strong></td><td>道路车辆功能安全、HARA 与 ASIL</td></tr>
+              <tr><td><strong>ISO 21448:2022</strong></td><td>预期功能安全 SOTIF</td></tr>
+              <tr><td><strong>ISO 34502 / 34503 / 34505</strong></td><td>自动驾驶场景化安全评估、ODD 分类与测试用例生成</td></tr>
+              <tr><td><strong>SAE J3187 / STPA 资料</strong></td><td>系统理论过程分析控制结构与 UCA 识别</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band" id="requirements">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">03 · System Requirements</div>
+            <h2>系统需求</h2>
+            <p>需求分为功能、可用性、性能、接口、运行、模式与状态、物理、环境、安保、信息管理、政策法规、生命周期支持及包装运输，共 13 类，与表 5-1 对应。</p>
+          </div>
+          <span class="section-code">SyRS 3.1–3.13</span>
+        </div>
+
+        <div class="subsection" id="req-functional">
+          <div class="subsection-head" data-level="1"><span class="number">3.1</span><h3>功能需求</h3></div>
+          <p>线控底盘应接收并执行运动控制指令，实现纵向、横向和横摆运动控制，并具备故障检测、隔离和降级能力。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>编号</th><th>需求描述</th><th>归属</th></tr></thead>
+              <tbody>
+                <tr><td class="trace-cell">FR-01</td><td>接收 ADS 目标车速、目标加速度和目标转向角等指令。</td><td>系统级</td></tr>
+                <tr><td class="trace-cell">FR-02</td><td>根据目标运动状态实现纵向速度闭环控制。</td><td>CDC/BBW/DBW</td></tr>
+                <tr><td class="trace-cell">FR-03</td><td>根据目标轨迹实现横向转向控制。</td><td>CDC/SBW</td></tr>
+                <tr><td class="trace-cell">FR-04</td><td>实现驱动、制动和转向的协调控制。</td><td>CDC</td></tr>
+                <tr><td class="trace-cell">FR-05</td><td>支持车辆横摆稳定性控制。</td><td>CDC</td></tr>
+                <tr><td class="trace-cell">FR-06</td><td>支持紧急制动、紧急避障等紧急运动控制。</td><td>CDC/BBW/SBW</td></tr>
+                <tr><td class="trace-cell">FR-07</td><td>按目标转向角控制前轮转角，并反馈转向状态。</td><td>SBW</td></tr>
+                <tr><td class="trace-cell">FR-08</td><td>具备转向角、转向力矩和转向执行故障监测。</td><td>SBW</td></tr>
+                <tr><td class="trace-cell">FR-09</td><td>在主转向通道故障时切换备用通道或进入降级状态。</td><td>SBW</td></tr>
+                <tr><td class="trace-cell">FR-10</td><td>按目标减速度生成制动力，并支持摩擦制动与回馈制动协调。</td><td>BBW/DBW</td></tr>
+                <tr><td class="trace-cell">FR-11</td><td>具备主制动通道故障后的备用制动能力。</td><td>BBW</td></tr>
+                <tr><td class="trace-cell">FR-12</td><td>支持紧急制动和失效降级制动。</td><td>BBW</td></tr>
+                <tr><td class="trace-cell">FR-13</td><td>按目标驱动转矩控制驱动电机，并检测非预期转矩。</td><td>DBW</td></tr>
+                <tr><td class="trace-cell">FR-14</td><td>监测关键传感器、通信、电源和执行器状态。</td><td>CDC</td></tr>
+                <tr><td class="trace-cell">FR-15</td><td>识别异常、冲突或过期指令，并执行安全降级。</td><td>CDC</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.2</span><h3>可用性需求</h3></div>
+          <div class="grid-2">
+            <div class="fact"><strong>可操作性</strong><span>自动驾驶与人工接管模式切换应连续、无突变，控制权状态清晰。</span></div>
+            <div class="fact"><strong>可维护性</strong><span>支持故障码、冻结帧、执行器测试、标定和 OTA 升级。</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.3</span><h3>性能需求</h3></div>
+          <p>性能指标用于概念阶段初步论证，实际值需结合目标车型、执行器选型和控制回路进一步确认。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>性能指标</th><th>建议目标</th><th>说明</th></tr></thead>
+              <tbody>
+                <tr><td><strong>底盘控制周期</strong></td><td>5–10 ms</td><td>由控制回路实时性确定</td></tr>
+                <tr><td><strong>控制指令延迟</strong></td><td>≤20 ms 目标值</td><td>从接收到执行响应的延迟</td></tr>
+                <tr><td><strong>转向角跟踪误差</strong></td><td>≤0.5° 目标值</td><td>需明确工况与统计方法</td></tr>
+                <tr><td><strong>纵向加速度跟踪误差</strong></td><td>≤0.1 g 目标值</td><td>需明确测量条件和评价窗口</td></tr>
+                <tr><td><strong>故障检测与切换</strong></td><td>满足安全目标时间预算</td><td>不能仅用固定切换时间评价</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn"><strong>说明：</strong>初步答案中“MTBF≥10000 h”“故障覆盖率≥99%”等数值可作为目标，但必须明确验证样本、置信水平和运行条件，避免把未经验证的指标直接写成结论。</div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.4</span><h3>接口需求</h3></div>
+          <div class="subsection-head" data-level="3"><span class="number">3.4.1</span><h3>外部接口</h3></div>
+          <p>自动驾驶域接口：接收目标运动状态与运行模式，上传底盘状态、故障和最小风险状态请求。整车域接口：接收整车模式与能量管理信息，反馈底盘工作状态。人机接口：输出故障告警和接管请求。</p>
+          <div class="subsection-head" data-level="3"><span class="number">3.4.2</span><h3>内部接口</h3></div>
+          <p>CDC 与 SBW/BBW/DBW 之间传输控制指令和执行状态；执行器与传感器之间传输转向角、轮速、制动压力、电机转矩等反馈信号；安全监控通道应尽可能采用独立数据路径。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>接口</th><th>传输内容</th><th>主要要求</th></tr></thead>
+              <tbody>
+                <tr><td><strong>ADC ↔ CDC</strong></td><td>目标转向角、目标车速、目标加速度、模式、状态反馈</td><td>高带宽、低时延、完整性、时效性</td></tr>
+                <tr><td><strong>CDC ↔ SBW/BBW/DBW</strong></td><td>子系统控制指令与执行状态</td><td>确定性、实时性、故障检测</td></tr>
+                <tr><td><strong>传感器 ↔ CDC</strong></td><td>转角、轮速、压力、横摆率、加速度、电流、温度</td><td>时间戳、有效性、冗余或交叉校验</td></tr>
+                <tr><td><strong>整车 ↔ 底盘</strong></td><td>整车模式、能量状态、底盘故障与健康状态</td><td>状态一致、可追溯</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.5</span><h3>系统运行</h3></div>
+          <p>系统运行分为上电自检、待机、正常运动控制、故障降级、最小风险机动、安全停车、维护与 OTA。L3 故障时可请求驾驶员接管，L4 不能把驾驶员接管作为唯一安全机制。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.6</span><h3>系统模式与状态</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>模式</th><th>状态说明</th><th>控制权</th></tr></thead>
+              <tbody>
+                <tr><td><strong>自动驾驶模式</strong></td><td>ADS 发送运动指令，底盘闭环执行。</td><td>ADS</td></tr>
+                <tr><td><strong>人工驾驶模式</strong></td><td>驾驶员通过踏板、方向盘输入，底盘辅助执行。</td><td>驾驶员</td></tr>
+                <tr><td><strong>故障降级模式</strong></td><td>限制速度、加速度或横向机动。</td><td>底盘安全策略</td></tr>
+                <tr><td><strong>最小风险状态</strong></td><td>减速、靠边、安全停车并驻车。</td><td>底盘安全策略</td></tr>
+                <tr><td><strong>维护 / OTA 模式</strong></td><td>诊断、标定、软件升级和回滚。</td><td>授权维护</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.7</span><h3>物理特征</h3></div>
+          <p>底盘执行器应满足安装空间、质量、功率、热管理和振动耐久约束；转向执行器、制动执行器和驱动电机应满足整车总布置及碰撞安全边界。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.8</span><h3>环境条件</h3></div>
+          <p>系统应适应车载温度、湿度、盐雾、振动、电磁兼容和低附着路面等环境。关键电子部件需满足车规级温度与寿命要求，底盘控制算法应能随路面摩擦系数和车辆姿态变化自适应调整。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.9</span><h3>安保需求</h3></div>
+          <p>安全相关控制指令应具备来源可信、完整有效、时效性和合理性校验；诊断、OTA、远程运营接口应具备身份认证、授权、审计、防重放和数据完整性保护。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.10</span><h3>信息管理需求</h3></div>
+          <p>应记录关键事件、故障冻结帧、控制指令与执行状态，用于事故分析、法规审计和车队管理。数据应具备时间戳、版本、权限和防篡改能力，同时符合隐私与数据保护要求。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.11</span><h3>政策与法规需求</h3></div>
+          <p>应满足适用道路交通安全法规、自动驾驶准入、功能安全、预期功能安全、网络安全和数据合规要求。L3/L4 最小风险机动能力应与目标运行设计域和法规要求保持一致。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.12</span><h3>系统生存周期支持需求</h3></div>
+          <p>应支持全生命周期内的诊断、预测性维护、软件升级、备件管理和安全事件分析；关键安全证据应可追溯至需求、设计、测试和运行数据。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">3.13</span><h3>包装、处理、装载、运输需求</h3></div>
+          <p>总成和关键电子器件应满足运输与仓储的防潮、防静电、防振动和标识要求；高压电池、功率器件和含稀土电机的处置需符合环保法规。</p>
+        </div>
+      </section>
+
+      <section class="band" id="verification">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">04 · Verification</div>
+            <h2>验证方法</h2>
+            <p>每项系统需求均需定义可执行的验证方法，本节与第 3 章需求类别对应。</p>
+          </div>
+          <span class="section-code">SyRS 4</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>需求类别</th><th>验证方法</th><th>关键判据</th></tr></thead>
+            <tbody>
+              <tr><td><strong>功能需求</strong></td><td>需求评审、模型仿真、HIL、整车测试</td><td>指令正确执行、状态正确反馈</td></tr>
+              <tr><td><strong>性能需求</strong></td><td>台架与整车动态试验</td><td>时延、误差、稳定性满足目标</td></tr>
+              <tr><td><strong>接口需求</strong></td><td>接口一致性、通信故障注入、互操作测试</td><td>报文完整、时间同步、异常可检测</td></tr>
+              <tr><td><strong>安全需求</strong></td><td>STPA 审查、故障注入、冗余切换、MRM 测试</td><td>单点/共因故障不导致不可接受风险</td></tr>
+              <tr><td><strong>环境 / 可靠性</strong></td><td>环境耐久、EMC、寿命与加速试验</td><td>满足车规级环境和寿命要求</td></tr>
+              <tr><td><strong>信息 / 安保</strong></td><td>渗透测试、权限测试、数据完整性验证</td><td>未授权访问被阻止、事件可审计</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band" id="appendix">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">05 · Appendix</div>
+            <h2>附录</h2>
+          </div>
+          <span class="section-code">SyRS 5</span>
+        </div>
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">5.1</span><h3>假设与依赖</h3></div>
+          <ul class="req-list">
+            <li class="req-item"><div class="req-title"><span class="req-id">A-01</span><h4>车辆为纯电动乘用车</h4></div><p>动力系统、高压电源和执行器配置与纯电动平台一致。</p></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">A-02</span><h4>具备 SBW / BBW / DBW</h4></div><p>转向、制动和驱动均具备电子控制执行能力，必要时保留机械备份。</p></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">A-03</span><h4>ADC 与 CDC 分层</h4></div><p>ADS 负责决策规划，底盘域控制器负责运动协调与执行分配。</p></li>
+            <li class="req-item warn"><div class="req-title"><span class="req-id">A-04</span><h4>概念设计边界</h4></div><p>本报告为系统级概念方案，不能直接视为已通过量产车辆功能安全验证的设计。</p></li>
+          </ul>
+        </div>
+
+        <div class="subsection" id="abbreviations">
+          <div class="subsection-head" data-level="1"><span class="number">5.2</span><h3>缩写与缩略语</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>缩写</th><th>全称</th><th>中文说明</th></tr></thead>
+              <tbody>
+                <tr><td><strong>ADC</strong></td><td>Automated Driving Controller</td><td>自动驾驶域控制器</td></tr>
+                <tr><td><strong>CDC</strong></td><td>Chassis Domain Controller</td><td>底盘域控制器</td></tr>
+                <tr><td><strong>SBW</strong></td><td>Steer-by-Wire</td><td>线控转向</td></tr>
+                <tr><td><strong>BBW</strong></td><td>Brake-by-Wire</td><td>线控制动</td></tr>
+                <tr><td><strong>DBW</strong></td><td>Drive-by-Wire</td><td>线控驱动</td></tr>
+                <tr><td><strong>STPA</strong></td><td>System-Theoretic Process Analysis</td><td>系统理论过程分析</td></tr>
+                <tr><td><strong>UCA</strong></td><td>Unsafe Control Action</td><td>不安全控制行为</td></tr>
+                <tr><td><strong>MRC</strong></td><td>Minimal Risk Condition</td><td>最小风险状态</td></tr>
+                <tr><td><strong>MRM</strong></td><td>Minimal Risk Maneuver</td><td>最小风险机动</td></tr>
+                <tr><td><strong>ODD</strong></td><td>Operational Design Domain</td><td>运行设计域</td></tr>
+                <tr><td><strong>HARA</strong></td><td>Hazard Analysis and Risk Assessment</td><td>危害分析与风险评估</td></tr>
+                <tr><td><strong>ASIL</strong></td><td>Automotive Safety Integrity Level</td><td>汽车安全完整性等级</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="architecture">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">06 · Initial Architecture</div>
+            <h2>初始系统架构</h2>
+            <p>采用“自动驾驶域控制器 + 底盘域控制器 + 分布式线控执行器”的分层架构。底盘域控制器负责运动协调、指令分配和故障管理，线控执行器负责具体执行。</p>
+          </div>
+          <span class="section-code">ADC + CDC + SBW + BBW + DBW</span>
+        </div>
+
+        <div class="architecture-flow">
+          <div class="architecture-inner">
+            <div class="arch-node"><strong>决策层</strong><span>自动驾驶域控制器 ADC<br>环境感知、行为决策、轨迹规划、目标运动状态</span></div>
+            <div class="arch-node"><strong>协调控制层</strong><span>底盘域控制器 CDC<br>运动控制、轨迹跟踪、转矩 / 制动力分配、故障管理</span></div>
+            <div class="arch-node"><strong>执行控制层</strong><span>SBW / BBW / DBW 控制器<br>转向、制动、驱动闭环控制</span></div>
+            <div class="arch-node"><strong>状态反馈层</strong><span>转角、轮速、压力、电流、姿态传感器<br>采集车辆与执行器状态</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">6.1</span><h3>功能架构</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>子系统</th><th>主要功能</th><th>核心控制对象</th></tr></thead>
+              <tbody>
+                <tr><td><strong>线控转向 SBW</strong></td><td>控制车辆转向角及转向力矩</td><td>转向执行电机</td></tr>
+                <tr><td><strong>线控制动 BBW</strong></td><td>制动力分配与车辆减速</td><td>制动执行器</td></tr>
+                <tr><td><strong>线控驱动 DBW</strong></td><td>驱动力与驱动转矩控制</td><td>驱动电机</td></tr>
+                <tr><td><strong>底盘域控制 CDC</strong></td><td>运动控制协调、指令分配、故障管理</td><td>各底盘执行系统</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">6.2</span><h3>CDC 软件功能模块</h3></div>
+          <div class="grid-3">
+            <div class="fact"><strong>指令接收与校验</strong><span>接收 ADS 指令，检查合法性、时效性与合理性。</span></div>
+            <div class="fact"><strong>运动控制与分配</strong><span>计算目标横摆、纵向和横向控制量，分配转向、制动和驱动指令。</span></div>
+            <div class="fact"><strong>安全监控与故障管理</strong><span>检测异常、诊断、隔离并触发降级控制。</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">6.3</span><h3>通信架构</h3></div>
+          <p>自动驾驶域与底盘域之间采用高带宽车载以太网；底盘域与执行控制器之间采用 CAN FD 或车载以太网；关键安全控制通道应设置独立通信路径或冗余能力，并监控超时、丢帧、计数器和数据有效性。</p>
+        </div>
+      </section>
+
+      <section class="band" id="control">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">07 · Control Structure</div>
+            <h2>系统控制框图</h2>
+            <p>控制框图对应 STPA 的分层控制结构，仅表达控制器、执行器、受控过程和传感器之间的功能交互，不包含具体硬件实现。</p>
+          </div>
+          <span class="section-code">Control Loop</span>
+        </div>
+        <div class="diagram-wrap" aria-label="线控底盘系统控制框图">
+          <svg viewBox="0 0 1160 840" role="img" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6f9f"></path>
+              </marker>
+              <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#39764d"></path>
+              </marker>
+              <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#96681f"></path>
+              </marker>
+            </defs>
+
+            <rect x="110" y="40" width="330" height="130" rx="8" fill="#f6e9e6" stroke="#a64a3b" stroke-width="2"></rect>
+            <text x="275" y="72" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">自动驾驶域控制器 ADC</text>
+            <text x="135" y="106" font-size="11" fill="#5b6876">感知融合 / 行为决策 / 轨迹规划</text>
+            <text x="135" y="130" font-size="11" fill="#5b6876">目标转向角 / 车速 / 加速度 / 模式</text>
+
+            <rect x="730" y="40" width="330" height="190" rx="8" fill="#e8f1f7" stroke="#2f6f9f" stroke-width="2"></rect>
+            <text x="895" y="72" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">底盘域控制器 CDC</text>
+            <text x="755" y="106" font-size="11" fill="#5b6876">指令校验 / 状态估计 / 运动控制</text>
+            <text x="755" y="130" font-size="11" fill="#5b6876">控制分配 / 安全监控 / 故障管理</text>
+            <text x="755" y="154" font-size="11" fill="#5b6876">通信与电源监控 / 独立安全仲裁</text>
+
+            <line x1="440" y1="110" x2="722" y2="110" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></line>
+            <text x="581" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#2f6f9f">目标运动指令</text>
+
+            <rect x="70" y="270" width="300" height="150" rx="8" fill="#ffffff" stroke="#1f7a7a" stroke-width="2"></rect>
+            <text x="220" y="305" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">线控转向 SBW</text>
+            <text x="95" y="340" font-size="11" fill="#5b6876">主 / 备转向控制器</text>
+            <text x="95" y="364" font-size="11" fill="#5b6876">转向执行电机 / 路感模拟</text>
+            <text x="95" y="388" font-size="11" fill="#5b6876">方向盘 / 车轮转角双通道监测</text>
+
+            <rect x="445" y="270" width="270" height="150" rx="8" fill="#ffffff" stroke="#1f7a7a" stroke-width="2"></rect>
+            <text x="580" y="305" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">线控制动 BBW</text>
+            <text x="470" y="340" font-size="11" fill="#5b6876">主 / 备制动控制器</text>
+            <text x="470" y="364" font-size="11" fill="#5b6876">制动执行器 / 压力反馈</text>
+            <text x="470" y="388" font-size="11" fill="#5b6876">独立备用制动路径</text>
+
+            <rect x="820" y="270" width="270" height="150" rx="8" fill="#ffffff" stroke="#1f7a7a" stroke-width="2"></rect>
+            <text x="955" y="305" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">线控驱动 DBW</text>
+            <text x="845" y="340" font-size="11" fill="#5b6876">驱动控制器 / 逆变器</text>
+            <text x="845" y="364" font-size="11" fill="#5b6876">驱动电机转矩 / 转速反馈</text>
+            <text x="845" y="388" font-size="11" fill="#5b6876">非预期转矩抑制 / 高压监控</text>
+
+            <path d="M 895 230 L 895 260 L 220 260 L 220 262" fill="none" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></path>
+            <path d="M 895 230 L 895 260 L 580 260 L 580 262" fill="none" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></path>
+            <path d="M 895 230 L 895 260 L 955 260 L 955 262" fill="none" stroke="#2f6f9f" stroke-width="2" marker-end="url(#arrow)"></path>
+            <text x="238" y="251" font-size="12" font-weight="700" fill="#2f6f9f">转向指令</text>
+            <text x="597" y="251" font-size="12" font-weight="700" fill="#2f6f9f">制动指令</text>
+            <text x="972" y="251" font-size="12" font-weight="700" fill="#2f6f9f">驱动指令</text>
+
+            <rect x="360" y="500" width="440" height="140" rx="8" fill="#e7f1e9" stroke="#39764d" stroke-width="2"></rect>
+            <text x="580" y="535" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4f70">车辆运动执行机构与受控过程</text>
+            <text x="385" y="570" font-size="11" fill="#5b6876">纵向 / 横向 / 横摆运动响应</text>
+            <text x="385" y="594" font-size="11" fill="#5b6876">轮胎附着与滑移状态</text>
+            <text x="385" y="618" font-size="11" fill="#5b6876">车辆动力学状态输出</text>
+
+            <path d="M 220 420 L 220 460 L 430 460 L 430 492" fill="none" stroke="#39764d" stroke-width="2" marker-end="url(#arrowGreen)"></path>
+            <path d="M 580 420 L 580 492" fill="none" stroke="#39764d" stroke-width="2" marker-end="url(#arrowGreen)"></path>
+            <path d="M 955 420 L 955 460 L 700 460 L 700 492" fill="none" stroke="#39764d" stroke-width="2" marker-end="url(#arrowGreen)"></path>
+            <text x="238" y="451" font-size="12" font-weight="700" fill="#39764d">转向执行</text>
+            <text x="595" y="459" font-size="12" font-weight="700" fill="#39764d">制动执行</text>
+            <text x="722" y="451" font-size="12" font-weight="700" fill="#39764d">驱动执行</text>
+
+            <rect x="300" y="720" width="560" height="120" rx="8" fill="#f8fafb" stroke="#96681f" stroke-width="2"></rect>
+            <text x="580" y="755" text-anchor="middle" font-size="17" font-weight="800" fill="#1d4f70">车辆状态传感器</text>
+            <text x="325" y="790" font-size="11" fill="#5b6876">转向 / 制动 / 驱动 / 整车状态</text>
+            <text x="325" y="814" font-size="11" fill="#5b6876">双通道或交叉校验反馈</text>
+
+            <path d="M 580 640 L 580 712" fill="none" stroke="#96681f" stroke-width="2" marker-end="url(#arrowAmber)"></path>
+            <text x="595" y="680" font-size="12" font-weight="700" fill="#96681f">车辆状态采集</text>
+
+            <path d="M 300 780 L 40 780 L 40 110 L 102 110" fill="none" stroke="#96681f" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrowAmber)"></path>
+            <path d="M 860 780 L 1120 780 L 1120 110 L 1068 110" fill="none" stroke="#96681f" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrowAmber)"></path>
+            <text x="43" y="450" font-size="12" font-weight="700" fill="#96681f">车辆状态</text>
+            <text x="1115" y="450" text-anchor="end" font-size="12" font-weight="700" fill="#96681f">底盘状态反馈</text>
+          </svg>
+        </div>
+        <p class="table-note">蓝色箭头为控制指令流，绿色箭头为执行器作用于受控过程，黄色虚线为传感器与状态反馈。反馈同时回到 CDC 和 ADC，形成底盘运动闭环与自动驾驶状态闭环。</p>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">7.1</span><h3>控制框图节点与接口细节</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>节点</th>
+                  <th>内部模块</th>
+                  <th>关键输入</th>
+                  <th>关键输出</th>
+                  <th>细节说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>ADC</strong></td>
+                  <td>环境感知、行为决策、轨迹规划、目标运动状态生成</td>
+                  <td>目标、车道、障碍物、地图、定位、车辆状态</td>
+                  <td>目标转向角、目标车速、目标加速度、模式请求</td>
+                  <td>不直接控制底盘执行器，只输出运动意图；需向底盘提供故障和最小风险状态请求。</td>
+                </tr>
+                <tr>
+                  <td><strong>CDC</strong></td>
+                  <td>指令校验、状态估计、运动控制、控制分配、安全监控、故障管理、通信电源监控</td>
+                  <td>ADC 指令、车辆状态、执行器反馈、通信与电源状态</td>
+                  <td>转向、制动、驱动指令，故障降级策略，安全干预</td>
+                  <td>是运动协调与安全仲裁的核心；需检查指令合法性、合理性、时效性，并在子系统冲突时进行仲裁。</td>
+                </tr>
+                <tr>
+                  <td><strong>SBW</strong></td>
+                  <td>主备转向控制器、执行电机、路感模拟、转角传感器、电源通信监控</td>
+                  <td>CDC 转向指令、方向盘转角、车速、驾驶模式</td>
+                  <td>实际前轮转角、转向执行状态、故障状态</td>
+                  <td>主备通道需避免共因失效；执行电机和转角反馈是转向闭环与安全监测的关键。</td>
+                </tr>
+                <tr>
+                  <td><strong>BBW</strong></td>
+                  <td>主备制动控制器、制动执行器、轮速与压力传感器、独立备用制动路径</td>
+                  <td>CDC 制动指令、轮速、制动压力、车辆状态</td>
+                  <td>实际制动力、制动执行状态、备用制动状态</td>
+                  <td>制动是进入最小风险状态的重要基础，需保证制动力建立速度、分配合理和备用能力独立。</td>
+                </tr>
+                <tr>
+                  <td><strong>DBW</strong></td>
+                  <td>驱动控制器、逆变器、驱动电机、转矩转速温度反馈、高压电源管理</td>
+                  <td>CDC 驱动指令、高压电源、电机状态</td>
+                  <td>实际驱动转矩、转速、温度、安全关断状态</td>
+                  <td>安全重点是防止非预期驱动转矩，检测异常时需限制或切断驱动输出。</td>
+                </tr>
+                <tr>
+                  <td><strong>受控过程</strong></td>
+                  <td>纵向运动、横向运动、横摆运动、轮胎附着与滑移</td>
+                  <td>前轮转角、制动力矩、驱动转矩、道路附着条件</td>
+                  <td>车速、加速度、横摆角速度、车辆姿态</td>
+                  <td>底盘控制需在轮胎附着极限内协调转向、制动和驱动，防止纵横向力冲突导致失稳。</td>
+                </tr>
+                <tr>
+                  <td><strong>传感器</strong></td>
+                  <td>转向、制动、驱动、整车状态四类传感器</td>
+                  <td>方向盘转角、车轮转角、轮速、压力、加速度、横摆率、转矩、温度</td>
+                  <td>双通道或可信状态信号、故障状态</td>
+                  <td>关键状态应具备时间戳、有效性、冗余或交叉校验能力，异常数据不得被无条件采信。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="stpa">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">08 · STPA</div>
+            <h2>系统理论过程分析</h2>
+            <p>STPA 从控制关系出发识别损失、危险、安全约束、不安全控制行为和致因场景，弥补 FTA/FMEA 仅关注部件失效的不足。</p>
+          </div>
+          <span class="section-code">Loss → Hazard → SC → UCA</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">8.1</span><h3>系统损失与系统级危险</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>编号</th><th>系统损失 / 危险</th><th>说明</th></tr></thead>
+              <tbody>
+                <tr><td class="trace-cell">L1</td><td><strong>人员生命安全损失</strong></td><td>车辆失控导致驾驶员、乘员或其他道路参与者伤亡。</td></tr>
+                <tr><td class="trace-cell">L2</td><td><strong>车辆重大损坏</strong></td><td>严重碰撞或失控事故。</td></tr>
+                <tr><td class="trace-cell">L3</td><td><strong>交通安全损失</strong></td><td>车辆异常运动引发连锁交通事故。</td></tr>
+                <tr><td class="trace-cell">H1</td><td><strong>非预期转向</strong></td><td>错误方向的转向动作或转向角过大。</td></tr>
+                <tr><td class="trace-cell">H2</td><td><strong>转向能力丧失</strong></td><td>车辆无法按安全要求控制行驶方向。</td></tr>
+                <tr><td class="trace-cell">H3</td><td><strong>非预期驱动</strong></td><td>驱动系统输出非预期驱动转矩。</td></tr>
+                <tr><td class="trace-cell">H4</td><td><strong>制动能力丧失</strong></td><td>车辆无法按安全要求减速或停车。</td></tr>
+                <tr><td class="trace-cell">H5</td><td><strong>非预期制动</strong></td><td>在不适当时机产生过大制动力。</td></tr>
+                <tr><td class="trace-cell">H6</td><td><strong>底盘协同控制失效</strong></td><td>转向、制动和驱动指令不协调导致失稳。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">8.2</span><h3>系统安全约束</h3></div>
+          <ul class="req-list">
+            <li class="req-item"><div class="req-title"><span class="req-id">SC1</span><h4>转向指令不得超过车辆动力学允许范围。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC2</span><h4>转向控制必须具备执行状态反馈和异常监测能力。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC3</span><h4>驱动系统不得产生非预期的驱动转矩。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC4</span><h4>制动系统必须具备满足安全目标的备用制动能力。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC5</span><h4>制动与驱动不得产生危险的冲突控制行为。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC6</span><h4>底盘控制器必须识别无效、超时和异常控制指令。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC7</span><h4>关键传感器异常时不得继续无条件使用错误数据。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC8</span><h4>关键通信故障时必须采取预定义的安全控制策略。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC9</span><h4>单一故障不得直接导致不可接受的车辆失控风险。</h4></div></li>
+            <li class="req-item"><div class="req-title"><span class="req-id">SC10</span><h4>无法保证正常控制时，应进入可控降级或最小风险状态。</h4></div></li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">8.3</span><h3>不安全控制行为 UCA</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>控制器</th><th>UCA</th><th>不安全控制行为</th><th>关联危险</th></tr></thead>
+              <tbody>
+                <tr><td>ADC</td><td class="trace-cell">UCA-01</td><td>输出错误目标转向角</td><td>H1</td></tr>
+                <tr><td>ADC</td><td class="trace-cell">UCA-02</td><td>未及时发送紧急制动指令</td><td>H4</td></tr>
+                <tr><td>CDC</td><td class="trace-cell">UCA-03</td><td>未及时执行制动指令</td><td>H4</td></tr>
+                <tr><td>CDC</td><td class="trace-cell">UCA-04</td><td>同时输出不协调的驱动与制动指令</td><td>H6</td></tr>
+                <tr><td>SBW</td><td class="trace-cell">UCA-05</td><td>输出过大的转向角</td><td>H1</td></tr>
+                <tr><td>SBW</td><td class="trace-cell">UCA-06</td><td>故障后未维持必要转向能力</td><td>H2</td></tr>
+                <tr><td>BBW</td><td class="trace-cell">UCA-07</td><td>未及时建立制动力</td><td>H4</td></tr>
+                <tr><td>BBW</td><td class="trace-cell">UCA-08</td><td>不适当工况下施加过大制动力</td><td>H5</td></tr>
+                <tr><td>DBW</td><td class="trace-cell">UCA-09</td><td>输出非预期驱动转矩</td><td>H3</td></tr>
+                <tr><td>CDC</td><td class="trace-cell">UCA-10</td><td>未识别传感器错误数据</td><td>H1/H4/H6</td></tr>
+                <tr><td>CDC</td><td class="trace-cell">UCA-11</td><td>通信中断后仍使用过期指令</td><td>H1/H3/H4</td></tr>
+                <tr><td>CDC</td><td class="trace-cell">UCA-12</td><td>故障后未及时执行降级策略</td><td>H1–H6</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn"><strong>重点关注 UCA-04：</strong>高速避障时若转向请求与过强制动同时发生，轮胎纵横向力可能超出附着极限。底盘系统必须建立统一的车辆动力学约束和控制仲裁机制，不能让三个线控子系统独立运行。</div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">8.4</span><h3>致因场景</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>致因类别</th><th>具体原因</th><th>可能引发的问题</th></tr></thead>
+              <tbody>
+                <tr><td><strong>控制算法</strong></td><td>算法错误、边界条件不足</td><td>错误控制指令</td></tr>
+                <tr><td><strong>传感器</strong></td><td>转角、轮速、横摆角速度传感器失效</td><td>状态估计错误</td></tr>
+                <tr><td><strong>通信</strong></td><td>报文丢失、延迟、数据异常</td><td>指令无法及时执行</td></tr>
+                <tr><td><strong>控制器</strong></td><td>MCU 异常、软件死锁、内存错误</td><td>控制功能失效</td></tr>
+                <tr><td><strong>执行器</strong></td><td>电机损坏、驱动故障、机械卡滞</td><td>执行能力丧失</td></tr>
+                <tr><td><strong>电源</strong></td><td>供电中断、电压异常</td><td>多个底盘子系统同时失效</td></tr>
+                <tr><td><strong>协同</strong></td><td>各控制器对车辆状态判断不一致</td><td>控制指令冲突</td></tr>
+                <tr><td><strong>安全管理</strong></td><td>故障未检测或响应不及时</td><td>故障进一步扩大</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="safety-requirements">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">09 · Safety Requirements</div>
+            <h2>安全需求</h2>
+            <p>将 STPA 得到的系统级安全约束转换为可分配、可验证的系统与子系统安全需求。</p>
+          </div>
+          <span class="section-code">SSR</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">9.1</span><h3>系统级安全需求</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>编号</th><th>安全需求</th><th>对应危险</th></tr></thead>
+              <tbody>
+                <tr><td class="trace-cell">SSR-01</td><td>对所有安全相关控制指令进行有效性校验。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-02</td><td>对关键车辆状态信息进行合理性检查。</td><td>H1/H2/H4/H6</td></tr>
+                <tr><td class="trace-cell">SSR-03</td><td>实时监测转向执行机构实际响应。</td><td>H1/H2</td></tr>
+                <tr><td class="trace-cell">SSR-04</td><td>防止驱动执行机构输出非预期转矩。</td><td>H3</td></tr>
+                <tr><td class="trace-cell">SSR-05</td><td>具备独立备用制动控制能力。</td><td>H4</td></tr>
+                <tr><td class="trace-cell">SSR-06</td><td>监测转向、制动和驱动指令的协调关系。</td><td>H6</td></tr>
+                <tr><td class="trace-cell">SSR-07</td><td>具备关键通信故障检测能力。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-08</td><td>具备关键电源故障监测和必要冗余供电能力。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-09</td><td>支持故障诊断与故障隔离。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-10</td><td>按故障等级实施安全降级策略。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-11</td><td>避免主备控制通道之间出现危险指令冲突。</td><td>H1–H6</td></tr>
+                <tr><td class="trace-cell">SSR-12</td><td>对进入最小风险状态的过程进行监控。</td><td>H1–H6</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">9.2</span><h3>子系统安全需求分解</h3></div>
+          <div class="grid-2">
+            <div class="fact"><strong>线控转向 SBW</strong><span>主备通道、转向角多重监测、电机故障检测、通道切换、防主备冲突。</span></div>
+            <div class="fact"><strong>线控制动 BBW</strong><span>备用制动、压力监测、控制器故障检测、紧急制动响应、制动驱动协调。</span></div>
+            <div class="fact"><strong>线控驱动 DBW</strong><span>转矩有效性监测、实际转矩反馈、逆变器监测、非预期转矩抑制。</span></div>
+            <div class="fact"><strong>底盘域控制器 CDC</strong><span>独立安全监控、指令异常检测、执行状态监控、故障诊断与安全仲裁。</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">9.3</span><h3>安全需求与架构分配</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>安全需求</th><th>主要分配对象</th><th>主要实现方式</th></tr></thead>
+              <tbody>
+                <tr><td>指令有效性检查</td><td>ADC 接口、CDC</td><td>合法性、时效性和合理性校验</td></tr>
+                <tr><td>转向故障监测</td><td>SBW</td><td>冗余传感、执行反馈</td></tr>
+                <tr><td>制动备用能力</td><td>BBW</td><td>备用控制和执行通道</td></tr>
+                <tr><td>非预期驱动抑制</td><td>DBW</td><td>转矩监控和安全关断</td></tr>
+                <tr><td>通信故障检测</td><td>网络管理模块</td><td>超时、计数器、CRC</td></tr>
+                <tr><td>控制冲突监测</td><td>CDC 安全监控</td><td>指令仲裁、动力学约束</td></tr>
+                <tr><td>安全降级</td><td>CDC、各执行器</td><td>故障响应及降级控制</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="safety">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">10 · Safety Architecture</div>
+            <h2>安全架构</h2>
+            <p>安全架构把控制器冗余、执行器冗余、独立安全监控、通信与电源冗余、分级降级控制落实到具体层级。</p>
+          </div>
+          <span class="section-code">Fault Detection + Redundancy + MRC</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">10.1</span><h3>安全架构总体设计</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>架构层级</th><th>核心组成</th><th>安全设计目标</th></tr></thead>
+              <tbody>
+                <tr><td><strong>自动驾驶控制层</strong></td><td>ADC、备用运动控制能力</td><td>避免错误运动指令传递</td></tr>
+                <tr><td><strong>底盘主控制层</strong></td><td>主 CDC</td><td>完成正常运动控制</td></tr>
+                <tr><td><strong>独立安全监控层</strong></td><td>安全监控控制器</td><td>监测主控制器异常</td></tr>
+                <tr><td><strong>执行冗余层</strong></td><td>SBW / BBW / DBW 备用通道</td><td>保障关键执行能力</td></tr>
+                <tr><td><strong>电源与通信保障层</strong></td><td>双路供电、冗余通信网络</td><td>避免公共资源失效导致失控</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">10.2</span><h3>主备控制器与独立安全监控</h3></div>
+          <p>主底盘控制器负责接收 ADS 指令、计算目标运动状态并分配控制指令；安全监控控制器独立监测主控制器运行状态、指令有效性、车辆状态偏差、通信和电源异常，并在必要时触发安全降级。安全监控不应完全依赖主控制器自报状态。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">10.3</span><h3>转向、制动、驱动安全冗余</h3></div>
+          <div class="grid-3">
+            <div class="fact"><strong>SBW 安全设计</strong><span>主备控制通道、转角交叉校验、执行机构监控、故障隔离、限速与安全停车。</span></div>
+            <div class="fact"><strong>BBW 安全设计</strong><span>备用制动通道、独立或冗余状态监测、备用能源、制动与驱动协调。</span></div>
+            <div class="fact"><strong>DBW 安全设计</strong><span>转矩合理性监测、输出限幅、实际转矩反馈、逆变器监测、独立转矩抑制。</span></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">10.4</span><h3>通信与电源安全冗余</h3></div>
+          <p>关键控制信号采用冗余通信路径，并配置 CRC、计数器、时间戳和超时监控；主电源和关键执行器电源应独立供电、隔离故障。冗余网络应避免共用电源、连接器和布线路径，以降低共因失效。</p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">10.5</span><h3>故障分级与最小风险状态</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>故障等级</th><th>故障状态</th><th>系统响应</th></tr></thead>
+              <tbody>
+                <tr><td class="trace-cell">F0</td><td>无故障</td><td>正常自动驾驶</td></tr>
+                <tr><td class="trace-cell">F1</td><td>非关键故障</td><td>报警并维持功能或受限运行</td></tr>
+                <tr><td class="trace-cell">F2</td><td>单一关键通道故障，备用可用</td><td>切换备用通道，限制车辆性能</td></tr>
+                <tr><td class="trace-cell">F3</td><td>多个关键功能受限</td><td>退出正常控制，启动最小风险机动</td></tr>
+                <tr><td class="trace-cell">F4</td><td>关键执行能力严重丧失</td><td>执行可用紧急安全策略，避免进一步危险</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout safe"><strong>最小风险状态目标：</strong>保持必要方向稳定性，限制非预期驱动转矩，保留可用制动能力，按环境与车辆状态控制减速度，尽可能安全靠边停车，并在停车后维持驻车制动。L3 可请求驾驶员接管；L4 应能由系统自主完成最小风险机动。</div>
+        </div>
+      </section>
+
+      <section class="band" id="traceability">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">11 · Traceability & Validation</div>
+            <h2>追溯与验证</h2>
+            <p>建立“初始架构 → STPA → 安全需求 → 安全架构 → 验证方法”的闭环，确保每项安全架构措施都有危险来源和安全需求依据。</p>
+          </div>
+          <span class="section-code">Closed Loop</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">11.1</span><h3>安全需求追溯矩阵</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>初始危险</th><th>STPA 结果</th><th>安全需求</th><th>架构措施</th><th>验证方法</th></tr></thead>
+              <tbody>
+                <tr><td>非预期转向</td><td class="trace-cell">UCA-05</td><td class="trace-cell">SSR-SBW-03</td><td>转向冗余及角度监测</td><td>HIL 故障注入</td></tr>
+                <tr><td>转向能力丧失</td><td class="trace-cell">UCA-06</td><td class="trace-cell">SSR-SBW-05</td><td>备用转向通道</td><td>故障切换测试</td></tr>
+                <tr><td>制动能力丧失</td><td class="trace-cell">UCA-07</td><td class="trace-cell">SSR-BBW-01</td><td>备用制动系统</td><td>制动失效测试</td></tr>
+                <tr><td>非预期驱动</td><td class="trace-cell">UCA-09</td><td class="trace-cell">SSR-DBW-04</td><td>驱动转矩抑制</td><td>转矩异常注入</td></tr>
+                <tr><td>指令数据异常</td><td class="trace-cell">UCA-11</td><td class="trace-cell">SSR-CDC-02</td><td>通信监控与指令校验</td><td>通信故障测试</td></tr>
+                <tr><td>底盘协调失效</td><td class="trace-cell">UCA-04</td><td class="trace-cell">SSR-CDC-05</td><td>独立安全监控及控制仲裁</td><td>多系统联合测试</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-head" data-level="1"><span class="number">11.2</span><h3>安全验证与确认方案</h3></div>
+          <div class="grid-2">
+            <div class="fact"><strong>需求验证</strong><span>检查需求完整性、覆盖性、一致性与接口明确性。</span></div>
+            <div class="fact"><strong>模型与软件验证</strong><span>车辆动力学仿真、协调控制仿真、故障检测与状态切换逻辑验证。</span></div>
+            <div class="fact"><strong>硬件在环 HIL</strong><span>注入执行器失效、主控制器故障、通信中断、传感器异常、电源异常和多故障组合。</span></div>
+            <div class="fact"><strong>整车安全验证</strong><span>高速紧急制动、低附着制动、转向通道切换、MRM 和安全停车。</span></div>
+          </div>
+        </div>
+
+        <div class="callout safe"><strong>最终结论：</strong>高阶智能驾驶线控底盘应采用分层、分布式、冗余化架构，以底盘域控制器为运动控制核心，以 SBW/BBW/DBW 为执行基础；通过 STPA 形成系统安全需求，再以控制器冗余、执行器冗余、通信电源冗余、独立安全监控和分级降级构成安全架构，形成从需求到验证的完整闭环。</div>
+      </section>
+
+      <footer class="footer">
+        <span>复杂系统工程 · 小组作业 3</span>
+        <span>依据 ISO/IEC/IEEE 29148:2018 表 5-1 编制</span>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      document.querySelectorAll(".subsection-head").forEach(function (head) {
+        var number = head.querySelector(".number");
+        if (!number) return;
+        var text = number.textContent.trim();
+        var level = (text.match(/\./g) || []).length + 1;
+        head.setAttribute("data-level", String(level));
+      });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+      var sections = links.map(function (link) {
+        return document.querySelector(link.getAttribute("href"));
+      }).filter(Boolean);
+
+      if (!sections.length) return;
+
+      function setActive(id) {
+        links.forEach(function (link) {
+          link.classList.toggle("active", link.getAttribute("href") === "#" + id);
+        });
+      }
+
+      var observer = new IntersectionObserver(function (entries) {
+        var visible = entries.filter(function (entry) {
+          return entry.isIntersecting;
+        }).sort(function (a, b) {
+          return b.intersectionRatio - a.intersectionRatio;
+        })[0];
+
+        if (visible) setActive(visible.target.id);
+      }, {
+        rootMargin: "-92px 0px -58% 0px",
+        threshold: [0.02, 0.15, 0.35, 0.6]
+      });
+
+      sections.forEach(function (section) {
+        observer.observe(section);
+      });
+
+      links.forEach(function (link) {
+        link.addEventListener("click", function () {
+          setActive(link.getAttribute("href").slice(1));
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
